@@ -1,0 +1,1923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Production Planner Pro</title>
+<style>
+:root{
+  --navy:#07101e;--n2:#0d1b2e;--n3:#1b2d42;--n4:#1e3a5f;
+  --acc:#0066cc;--grn:#00884a;--org:#e65100;--red:#b71c1c;--pur:#6a1b9a;
+  --bg:#e4eaf2;--bdr:#c4d0de;--txt:#18202c;--mut:#5a6a7a;
+  --hol-bg:#fff3cc;--hol-bdr:#e8c84a;--hol-txt:#7a5c00;
+  --we-bg:#dde5ef;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Arial,sans-serif;}
+body{background:var(--bg);color:var(--txt);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* ── TOP BAR ── */
+#tb{background:linear-gradient(90deg,#07101e,#132540);height:46px;display:flex;align-items:center;
+  padding:0 8px;gap:4px;box-shadow:0 2px 10px #0008;z-index:300;flex-shrink:0;overflow-x:auto;}
+.logo{font-size:15px;font-weight:900;color:#fff;letter-spacing:.5px;white-space:nowrap;margin-right:4px;}
+.logo span{color:#4cf;}
+.vd{width:1px;height:22px;background:#fff3;margin:0 2px;flex-shrink:0;}
+.tab{background:none;border:none;color:#ffffffaa;padding:4px 9px;border-radius:4px;
+  cursor:pointer;font-size:11px;font-weight:700;transition:.12s;white-space:nowrap;flex-shrink:0;}
+.tab.on,.tab:hover{background:var(--acc);color:#fff;}
+.sp{flex:1;}
+.btn{border:none;border-radius:4px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;height:26px;white-space:nowrap;}
+.b-blu{background:var(--acc);color:#fff;} .b-grn{background:var(--grn);color:#fff;}
+.b-org{background:var(--org);color:#fff;} .b-red{background:var(--red);color:#fff;}
+.b-gy{background:#546e8a;color:#fff;} .b-pur{background:var(--pur);color:#fff;}
+.b-gy2{background:#2c3e50;color:#fff;}
+#fl{color:#7ac;font-size:10.5px;font-weight:700;margin-left:4px;white-space:nowrap;}
+
+/* ── LAYOUT ── */
+#app{flex:1;display:flex;overflow:hidden;}
+.pnl{display:none;flex:1;flex-direction:column;overflow:hidden;}
+.pnl.on{display:flex;}
+.tbar{background:#fff;border-bottom:1px solid var(--bdr);padding:5px 10px;
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex-shrink:0;min-height:40px;}
+.tbar label{font-size:10px;font-weight:700;color:var(--mut);}
+.tbar select,.tbar input[type=number],.tbar input[type=text]{
+  border:1px solid var(--bdr);border-radius:3px;padding:3px 6px;font-size:11px;height:26px;background:#fff;color:var(--txt);}
+.scroll{flex:1;overflow:auto;}
+
+/* ── MULTI-SELECT ── */
+.ms-wrap{position:relative;display:inline-block;}
+.ms-btn{border:1px solid var(--bdr);border-radius:3px;padding:2px 20px 2px 6px;font-size:11px;
+  height:26px;background:#fff;cursor:pointer;white-space:nowrap;min-width:75px;position:relative;
+  display:flex;align-items:center;user-select:none;}
+.ms-btn::after{content:'▾';position:absolute;right:5px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--mut);}
+.ms-drop{display:none;position:absolute;top:28px;left:0;background:#fff;border:1px solid var(--bdr);
+  border-radius:4px;box-shadow:0 4px 16px #0003;z-index:600;min-width:150px;max-height:240px;overflow-y:auto;}
+.ms-drop.open{display:block;}
+.ms-item{display:flex;align-items:center;gap:7px;padding:5px 10px;cursor:pointer;font-size:11px;}
+.ms-item:hover{background:#eef4ff;}
+.ms-item input{width:13px;height:13px;cursor:pointer;flex-shrink:0;}
+.ms-all{border-bottom:1px solid var(--bdr);font-weight:700;color:var(--acc);}
+
+/* ── MASTER PLAN ── */
+table.mp{border-collapse:collapse;width:100%;font-size:11px;white-space:nowrap;}
+.mp thead th{background:var(--navy);color:#fff;padding:5px 7px;border-right:1px solid #fff2;
+  position:sticky;top:0;z-index:20;font-size:10px;font-weight:700;text-align:center;}
+.mp thead th.s2{background:#0d1f38;}
+.mp td{padding:4px 7px;border-bottom:1px solid #d8e4f0;border-right:1px solid #e8f0f8;vertical-align:middle;text-align:center;}
+.mp tr.ev td{background:#f4f8fc;} .mp tr:hover td{background:#d4e8ff;}
+.bdg{display:inline-block;border-radius:8px;padding:1px 7px;font-size:10px;font-weight:700;}
+.bc{background:#e8f5e9;color:#1b5e20;}.bp{background:#fff8e1;color:#e65100;}.bo{background:#fce4ec;color:#880e4f;}
+.ew{display:inline-flex;align-items:center;gap:3px;}
+.etr{width:42px;height:8px;background:#dde6f0;border-radius:2px;overflow:hidden;}
+.efl{height:100%;border-radius:2px;}
+.sc-bar{display:flex;gap:8px;padding:7px 10px;background:#fff;border-bottom:1px solid var(--bdr);flex-wrap:wrap;flex-shrink:0;}
+.sc{border:1px solid var(--bdr);border-radius:6px;padding:6px 12px;min-width:105px;flex:1;}
+.sv{font-size:18px;font-weight:900;color:var(--acc);}
+.sl{font-size:9.5px;color:var(--mut);font-weight:700;margin-top:1px;}
+.sc.g .sv{color:var(--grn);}.sc.o .sv{color:var(--org);}.sc.r .sv{color:var(--red);}
+
+/* ── GANTT ── */
+table.gc{border-collapse:collapse;white-space:nowrap;}
+.gc th.lh{background:var(--n2);color:#fff;font-size:11px;font-weight:900;padding:5px 8px;
+  border:1px solid #1a2d42;position:sticky;left:0;top:0;z-index:25;min-width:60px;text-align:center;}
+.gc th.dh{background:var(--n4);color:#c8dcf0;font-size:10px;font-weight:700;padding:4px 2px;
+  border:1px solid #142b48;min-width:52px;text-align:center;position:sticky;top:0;z-index:10;}
+.gc th.dh-hol{background:#7a5c00;color:#fff8cc;font-size:10px;font-weight:700;padding:4px 2px;
+  border:1px solid #c8a000;min-width:52px;text-align:center;position:sticky;top:0;z-index:10;}
+.gc th.dy{background:#162840;color:#8aaac8;font-size:9px;padding:2px;
+  border:1px solid #0d1f33;text-align:center;position:sticky;top:28px;z-index:10;}
+.gc th.dy-hol{background:#5a4000;color:#ffd700;font-size:9px;padding:2px;
+  border:1px solid #8a6000;text-align:center;position:sticky;top:28px;z-index:10;}
+.gc td.lc{background:var(--n4);color:#fff;font-weight:900;font-size:12px;padding:4px 8px;
+  border:1px solid #142b48;position:sticky;left:0;z-index:5;min-width:60px;text-align:center;}
+.gc td.empty-cell{background:#f0f4f8;border:1px solid #ccd8e4;}
+.gc td.gc-blk{padding:0;border:1px solid rgba(0,0,0,.15);}
+.gc-c{display:flex;align-items:center;justify-content:flex-start;height:28px;
+  font-size:9.5px;font-weight:800;overflow:hidden;padding:0 5px;white-space:nowrap;}
+.gc td.hol-cell{background:var(--hol-bg);border:1px solid var(--hol-bdr);}
+.gc td.qr{background:#0a1c30;border:1px solid #1a3050;text-align:center;font-size:10px;font-weight:700;color:#6090b0;padding:3px 2px;}
+.gc td.qv{background:#0d2238;border:1px solid #1a3050;text-align:center;font-size:11px;font-weight:900;padding:3px 2px;}
+
+
+/* ── DAY PLAN — LIGHT CLEAN THEME ── */
+table.dp{border-collapse:collapse;white-space:nowrap;}
+.dp thead th{position:sticky;top:0;z-index:10;font-size:10px;font-weight:700;
+  text-align:center;padding:4px 3px;border:1px solid #90a4ae;}
+.dp th.th-rtype{background:#1565c0;color:#fff;font-size:10px;font-weight:800;text-align:left;padding:5px 8px;
+  min-width:110px;max-width:110px;position:sticky;left:0;z-index:25;}
+.dp th.th-style{background:#1976d2;color:#e3f2fd;font-size:10px;text-align:left;padding:5px 6px;
+  min-width:110px;max-width:110px;position:sticky;left:110px;z-index:25;}
+.dp th.th-d{background:#1976d2;color:#fff;}
+.dp th.th-we{background:#b0bec5;color:#455a64;}
+.dp th.th-hol{background:#f9a825;color:#3e2000;font-weight:800;}
+.dp th.th-sm{background:#0d47a1;color:#fff;min-width:70px;}
+/* Frozen label columns */
+.dp td.c-rtype{background:#1565c0;color:#fff;font-weight:700;font-size:10px;text-align:left;
+  padding:3px 8px;position:sticky;left:0;z-index:4;min-width:110px;max-width:110px;
+  border:1px solid #1976d2;white-space:nowrap;overflow:hidden;}
+.dp td.c-style{background:#e3f2fd;color:#0d47a1;font-size:9px;font-weight:600;text-align:left;
+  padding:2px 5px;position:sticky;left:110px;z-index:4;min-width:110px;max-width:110px;
+  border:1px solid #bbdefb;white-space:normal;word-break:break-word;line-height:1.3;}
+/* Data cells */
+.dp td{border:1px solid #cfd8dc;font-size:10.5px;text-align:right;padding:2px 5px;vertical-align:middle;}
+.dp td.we-cell{background:#eceff1!important;color:#90a4ae;text-align:center;}
+.dp td.hol-day{background:#fff8e1!important;color:#e65100;text-align:center;font-size:9px;font-weight:800;}
+.dp td.sm{background:#0d47a1!important;color:#fff!important;font-weight:800;text-align:right!important;font-size:10.5px;}
+/* Row backgrounds — LIGHT pastel colors */
+.r-st  td{background:#e3f2fd;}
+.r-fb  td{background:#e8f5e9;}
+.r-cm  td{background:#fff8e1;}
+.r-sv  td{background:#f3e5f5;}
+.r-pt  td{background:#ffffff;font-weight:800;}
+.r-cu  td{background:#ede7f6;}
+.r-sh  td{background:#e0f7fa;}
+.r-cs  td{background:#e0f2f1;}
+.r-fv  td{background:#f1f8e9;}
+.r-cmv td{background:#fbe9e7;}
+.r-ef  td{background:#e8eaf6;font-weight:800;}
+.r-lh  td{background:#1565c0;color:#fff;font-weight:900;border-top:3px solid #0d47a1;
+  padding:5px 10px;font-size:11px;}
+.r-ft  td{background:#0d47a1;color:#fff;font-weight:900;font-size:11px;}
+.r-sep td{background:#b0bec5;height:4px;padding:0;border:none;}
+/* HOLIDAYS PAGE */
+table.ht{border-collapse:collapse;font-size:11.5px;width:100%;max-width:720px;}
+.ht th{background:var(--navy);color:#fff;padding:7px 12px;font-size:11px;font-weight:700;border:1px solid #1a2d42;text-align:left;}
+.ht td{padding:6px 12px;border:1px solid #ccd8e4;vertical-align:middle;}
+.ht tr.ev td{background:#f4f8fc;} .ht tr:hover td{background:var(--hol-bg);}
+.hbadge{display:inline-block;background:var(--hol-bg);color:var(--hol-txt);border:1px solid var(--hol-bdr);
+  border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;}
+/* CATEGORY */
+table.ct{border-collapse:collapse;font-size:11px;width:100%;}
+.ct th{background:var(--navy);color:#fff;padding:5px 8px;font-size:10px;font-weight:700;border:1px solid #1a2d42;}
+.ct td{padding:5px 8px;border:1px solid #ccd8e4;text-align:center;}
+.ct tr.ev td{background:#f4f8fc;}
+/* MODAL */
+.ov{display:none;position:fixed;inset:0;background:#0009;z-index:700;align-items:center;justify-content:center;}
+.ov.on{display:flex;}
+.modal{background:#fff;border-radius:10px;padding:20px;max-width:94vw;max-height:92vh;
+  overflow-y:auto;box-shadow:0 8px 40px #0007;min-width:300px;}
+.modal h3{font-size:14px;font-weight:900;color:var(--n2);margin-bottom:14px;}
+.fg{display:flex;flex-direction:column;gap:3px;margin-bottom:10px;}
+.fg label{font-size:10.5px;font-weight:700;color:var(--mut);}
+.fg input,.fg select{border:1px solid var(--bdr);border-radius:4px;padding:5px 8px;font-size:12px;}
+.fgr{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;}
+.mf{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;}
+.empty-state{padding:60px;text-align:center;color:var(--mut);}
+.empty-state .ei{font-size:52px;margin-bottom:14px;}
+.empty-state .et2{font-size:15px;font-weight:800;margin-bottom:8px;}
+/* LEGEND */
+.legend{display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:10.5px;padding:4px 10px;background:#fff;border-bottom:1px solid var(--bdr);}
+.leg-item{display:flex;align-items:center;gap:4px;}
+.leg-box{width:14px;height:14px;border-radius:3px;border:1px solid #ccc;flex-shrink:0;}
+@media print{#tb,.tbar,.sc-bar,.legend{display:none!important;}.pnl{display:flex!important;}
+  .scroll{overflow:visible!important;}body,html{height:auto;overflow:visible;}}
+</style>
+</head>
+<body>
+<div id="tb">
+  <div class="logo">PRODUCTION<span>PLANNER</span></div>
+  <div class="vd"></div>
+  <button class="tab on"  onclick="showTab('master',this)">📋 Master Plan</button>
+  <button class="tab"     onclick="showTab('dayplan',this)">📅 Day Plan</button>
+  <button class="tab"     onclick="showTab('gantt',this)">📊 Gantt Chart</button>
+  <button class="tab"     onclick="showTab('holidays',this)">🎌 Holidays</button>
+  <button class="tab"     onclick="showTab('category',this)">🏷 Categories</button>
+  <div class="sp"></div>
+  <button class="btn b-gy2" onclick="backupData()" title="Backup all data to JSON">💾 Backup</button>
+  <label class="btn b-gy2" style="cursor:pointer" title="Restore from backup JSON">📂 Restore<input type="file" accept=".json" onchange="restoreData(event)" style="display:none"></label>
+  <button class="btn b-org" onclick="window.print()">🖨 Print</button>
+  <div id="fl" id="fl">—</div>
+</div>
+
+<div id="app">
+
+<!-- MASTER PLAN -->
+<div class="pnl on" id="p-master">
+  <div class="tbar">
+    <label>📂 Upload Master Plan Excel:</label>
+    <label class="btn b-blu" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+      📤 Choose File <input type="file" accept=".xlsx,.xlsm,.xls" onchange="handleUpload(event)" style="display:none">
+    </label>
+    <div class="vd"></div>
+    <label>Line:</label>
+    <div class="ms-wrap"><div class="ms-btn" id="ms-line-btn" onclick="toggleMS('line')">All</div><div class="ms-drop" id="ms-line-drop"></div></div>
+    <label>Buyer:</label>
+    <div class="ms-wrap"><div class="ms-btn" id="ms-buyer-btn" onclick="toggleMS('buyer')">All</div><div class="ms-drop" id="ms-buyer-drop"></div></div>
+    <label>Status:</label>
+    <select id="mp-st" onchange="renderMP()">
+      <option value="">All</option><option>CONFIRMED</option><option>PROJECTION</option><option>OPEN</option>
+    </select>
+    <input type="text" id="mp-q" placeholder="Search…" style="width:110px" oninput="renderMP()">
+    <div class="sp"></div>
+    <span id="mp-inf" style="font-size:11px;color:var(--mut)"></span>
+  </div>
+  <div class="sc-bar" id="mp-sb"></div>
+  <div class="scroll">
+    <div id="mp-empty" class="empty-state"><div class="ei">📋</div>
+      <div class="et2">Upload Your Master Plan Excel File</div>
+      <div style="font-size:12px;color:var(--mut)">Data is saved automatically in browser — survives refresh</div>
+    </div>
+    <table class="mp" id="mp-t" style="display:none">
+      <thead><tr>
+        <th rowspan="2">Line</th><th rowspan="2">Status</th>
+        <th rowspan="2" style="text-align:left;min-width:150px">Style</th>
+        <th rowspan="2" style="text-align:left;min-width:110px">Description</th>
+        <th rowspan="2">Category</th><th rowspan="2">Buyer</th>
+        <th rowspan="2">Alloc Qty</th><th rowspan="2">SMV</th>
+        <th rowspan="2">MO</th><th rowspan="2">Wk Hrs</th>
+        <th rowspan="2">Avg Eff%</th><th rowspan="2">Daily Out</th><th rowspan="2">Prod Days</th>
+        <th rowspan="2">FOB $</th><th rowspan="2">CM $</th>
+        <th colspan="2" class="s2">Production</th>
+        <th colspan="2" class="s2">Delivery</th>
+        <th rowspan="2">Delay</th>
+      </tr>
+      <tr><th class="s2">PSD</th><th class="s2">PFD</th><th class="s2">Org Del</th><th class="s2">Rev Del</th></tr>
+      </thead>
+      <tbody id="mp-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- DAY PLAN -->
+<div class="pnl" id="p-dayplan">
+  <div class="tbar">
+    <label>Line:</label>
+    <div class="ms-wrap"><div class="ms-btn" id="ms-dpline-btn" onclick="toggleMS('dpline')">All</div><div class="ms-drop" id="ms-dpline-drop"></div></div>
+    <label>Month:</label>
+    <select id="dp-mo" onchange="renderDP()"><option value="">—</option></select>
+    <label>MO:</label><input type="number" id="dp-MO" value="25" style="width:46px" onchange="renderDP()">
+    <label>Hrs:</label><input type="number" id="dp-WH" value="10" style="width:42px" onchange="renderDP()">
+    <div class="sp"></div>
+    <button class="btn b-grn" onclick="exportDayPlanXLSX()">📥 Excel</button>
+    <button class="btn b-org" onclick="window.print()">🖨 Print</button>
+  </div>
+  <div class="legend">
+    <div class="leg-item"><div class="leg-box" style="background:#fff;border:1px solid #ccc"></div>Working Day</div>
+    <div class="leg-item"><div class="leg-box" style="background:#eceff1;border-color:#b0bec5"></div>Weekend</div>
+    <div class="leg-item"><div class="leg-box" style="background:#fff8e1;border-color:#f9a825"></div>Holiday</div>
+    <div class="leg-item"><div class="leg-box" style="background:#e3f2fd;border-color:#90caf9"></div>Style Row</div>
+    <div class="leg-item"><div class="leg-box" style="background:#fff;border:2px solid #1565c0"></div>Plan Target</div>
+    <div class="leg-item"><div class="leg-box" style="background:#e0f7fa;border-color:#80deea"></div>SAH / Hrs</div>
+    <div class="leg-item"><div class="leg-box" style="background:#ede7f6;border-color:#ce93d8"></div>Cumulative</div>
+    <div class="leg-item"><div class="leg-box" style="background:#0d47a1"></div><span style="color:#0d47a1;font-weight:700">Summary Col</span></div>
+  </div>
+  <div class="scroll">
+    <div id="dp-empty" class="empty-state"><div class="ei">📅</div><div class="et2">Upload Master Plan First</div></div>
+    <div id="dp-con"></div>
+  </div>
+</div>
+
+<!-- GANTT -->
+<div class="pnl" id="p-gantt">
+  <div class="tbar">
+    <label>Month:</label>
+    <select id="gc-mo" onchange="renderGC()"><option value="">—</option></select>
+    <label>Line:</label>
+    <div class="ms-wrap"><div class="ms-btn" id="ms-gcline-btn" onclick="toggleMS('gcline')">All</div><div class="ms-drop" id="ms-gcline-drop"></div></div>
+    <div class="sp"></div>
+    <button class="btn b-grn" onclick="exportGanttXLSX()">📥 Excel</button>
+    <button class="btn b-org" onclick="window.print()">🖨 Print</button>
+  </div>
+  <div class="legend">
+    <div class="leg-item"><div class="leg-box" style="background:#f0f4f8"></div>No Production</div>
+    <div class="leg-item"><div class="leg-box" style="background:var(--hol-bg);border-color:var(--hol-bdr)"></div>Holiday</div>
+    <div class="leg-item">🎨 Each color = one style</div>
+    <div class="leg-item">Style name shown at start of each block</div>
+  </div>
+  <div class="scroll"><div id="gc-con">
+    <div class="empty-state"><div class="ei">📊</div><div class="et2">Upload Master Plan First</div></div>
+  </div></div>
+</div>
+
+<!-- HOLIDAYS -->
+<div class="pnl" id="p-holidays">
+  <div class="tbar">
+    <span style="font-weight:800;font-size:13px">🎌 Factory Holidays</span>
+    <div class="vd"></div>
+    <label>Year:</label>
+    <select id="hl-yr" onchange="renderHolidays()"></select>
+    <div class="sp"></div>
+    <button class="btn b-grn" onclick="openHM(-1)">+ Add Holiday</button>
+    <button class="btn b-gy" onclick="addSLHolidays()">🇱🇰 SL Public Holidays 2025</button>
+    <button class="btn b-gy" onclick="addSLHolidays2026()">🇱🇰 SL Public Holidays 2026</button>
+  </div>
+  <div class="scroll" style="padding:14px">
+    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
+      <div style="flex:1;min-width:340px">
+        <table class="ht" id="hl-tbl">
+          <thead><tr><th>Date</th><th>Day</th><th>Holiday Name</th><th>Type</th><th style="width:80px">Actions</th></tr></thead>
+          <tbody id="hl-body"></tbody>
+        </table>
+        <div id="hl-empty" style="padding:30px;text-align:center;color:var(--mut);font-size:13px">
+          No holidays added. Click "+ Add Holiday" or use SL Public Holidays button.
+        </div>
+      </div>
+      <div style="min-width:240px;max-width:300px;display:flex;flex-direction:column;gap:12px;">
+        <div style="background:#fff;border:1px solid var(--bdr);border-radius:8px;padding:14px;">
+          <div style="font-weight:800;font-size:13px;margin-bottom:8px;color:var(--navy)">Summary</div>
+          <div id="hl-summary" style="font-size:12px;color:var(--mut);line-height:2"></div>
+        </div>
+        <div style="background:var(--hol-bg);border:1px solid var(--hol-bdr);border-radius:8px;padding:12px;">
+          <div style="font-weight:800;font-size:12px;margin-bottom:6px;color:var(--hol-txt)">ℹ️ How Holidays Work</div>
+          <div style="font-size:11px;color:#665500;line-height:1.7">
+            • Holidays shown in <span style="background:var(--hol-bg);border:1px solid var(--hol-bdr);border-radius:4px;padding:1px 6px;font-weight:700">gold</span> in Day Plan &amp; Gantt<br>
+            • Holidays = non-working days (like weekends)<br>
+            • Style sequence automatically skips holidays<br>
+            • Production output = 0 on holidays<br>
+            • Data saved in browser storage automatically
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CATEGORIES -->
+<div class="pnl" id="p-category">
+  <div class="tbar">
+    <span style="font-weight:800;font-size:13px">Product Category Ramp-Up Ladder</span>
+    <div class="sp"></div>
+    <button class="btn b-grn" onclick="openCM()">+ Add Category</button>
+  </div>
+  <div class="scroll" style="padding:12px">
+    <table class="ct" id="ct-t">
+      <thead><tr>
+        <th style="text-align:left;min-width:200px">Category</th>
+        <th>D1</th><th>D2</th><th>D3</th><th>D4</th><th>D5</th>
+        <th>D6</th><th>D7</th><th>D8</th><th>D9</th><th>D10+</th><th></th>
+      </tr></thead>
+      <tbody id="ct-body"></tbody>
+    </table>
+  </div>
+</div>
+</div><!-- /app -->
+
+<!-- ADD HOLIDAY MODAL -->
+<div class="ov" id="hm-ov">
+  <div class="modal" style="min-width:360px">
+    <h3>🎌 Add / Edit Holiday</h3>
+    <input type="hidden" id="hm-idx" value="-1">
+    <div class="fg"><label>Date *</label><input type="date" id="hm-date"></div>
+    <div class="fg"><label>Holiday Name *</label><input id="hm-name" placeholder="e.g. Sinhala & Tamil New Year"></div>
+    <div class="fg"><label>Type</label>
+      <select id="hm-type">
+        <option value="public">Public Holiday</option>
+        <option value="poya">Poya Day</option>
+        <option value="national">National Holiday</option>
+        <option value="factory">Factory Holiday</option>
+      </select>
+    </div>
+    <div class="mf">
+      <button class="btn b-gy" onclick="closeHM()">Cancel</button>
+      <button class="btn b-grn" onclick="saveHoliday()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CATEGORY MODAL -->
+<div class="ov" id="cm-ov">
+  <div class="modal">
+    <h3>🏷 Add Category</h3>
+    <div class="fg"><label>Name *</label><input id="cm-nm" placeholder="e.g. POLO NEW"></div>
+    <div class="fgr">
+      <div class="fg"><label>Day 1 %</label><input type="number" id="cm-d1" value="35"></div>
+      <div class="fg"><label>Day 2 %</label><input type="number" id="cm-d2" value="40"></div>
+      <div class="fg"><label>Day 3 %</label><input type="number" id="cm-d3" value="45"></div>
+      <div class="fg"><label>Day 4 %</label><input type="number" id="cm-d4" value="50"></div>
+      <div class="fg"><label>Day 5 %</label><input type="number" id="cm-d5" value="50"></div>
+      <div class="fg"><label>Day 6 %</label><input type="number" id="cm-d6" value="55"></div>
+      <div class="fg"><label>Day 7 %</label><input type="number" id="cm-d7" value="55"></div>
+      <div class="fg"><label>Day 8 %</label><input type="number" id="cm-d8" value="60"></div>
+      <div class="fg"><label>Day 9 %</label><input type="number" id="cm-d9" value="60"></div>
+      <div class="fg"><label>Day 10+ %</label><input type="number" id="cm-d10" value="60"></div>
+    </div>
+    <div class="mf">
+      <button class="btn b-gy" onclick="closeCM()">Cancel</button>
+      <button class="btn b-grn" onclick="saveCM()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ══════════════════════════════════════════════════════════
+//  CONSTANTS
+// ══════════════════════════════════════════════════════════
+const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const STORAGE_KEY='ppro_v4_data';
+const GC_COLS=['#1565c0','#2e7d32','#6a1b9a','#ad1457','#e65100','#00695c',
+               '#283593','#4a7c00','#4527a0','#c62828','#0277bd','#37474f',
+               '#bf6000','#5d4037','#006064','#558b2f'];
+
+// ══════════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════════
+let styles=[];
+let holidays=[];  // [{date:'2025-04-14',name:'...',type:'public'}]
+let cats=[
+  {name:'POLO NEW',            ldr:[.35,.40,.45,.50,.50,.55,.55,.60,.60,.60]},
+  {name:'POLO REPEAT',         ldr:[.40,.45,.50,.55,.55,.60,.60,.65,.65,.65]},
+  {name:'CREW NECK NEW',       ldr:[.35,.40,.45,.50,.50,.55,.55,.60,.60,.60]},
+  {name:'CREW NECK REPEAT',    ldr:[.40,.45,.50,.55,.55,.60,.60,.65,.65,.65]},
+  {name:'MENS SHIRT NEW',      ldr:[.25,.25,.30,.30,.35,.35,.40,.45,.50,.50]},
+  {name:'MENS SHIRT REPEAT',   ldr:[.30,.30,.35,.35,.40,.40,.45,.50,.55,.55]},
+  {name:'DRESS NEW',           ldr:[.25,.25,.30,.30,.35,.35,.40,.45,.50,.50]},
+  {name:'DRESS REPEAT',        ldr:[.30,.30,.35,.35,.40,.40,.45,.45,.50,.50]},
+  {name:'JACKET NEW',          ldr:[.25,.25,.30,.30,.35,.35,.40,.45,.50,.50]},
+  {name:'JACKET REPEAT',       ldr:[.30,.30,.35,.35,.40,.40,.45,.45,.50,.50]},
+  {name:'HOODIE NEW',          ldr:[.25,.25,.30,.30,.35,.35,.40,.45,.50,.50]},
+  {name:'HOODIE REPEAT',       ldr:[.30,.30,.35,.35,.40,.40,.45,.45,.50,.50]},
+  {name:'BASIC PANT NEW',      ldr:[.25,.25,.30,.30,.35,.35,.40,.45,.50,.50]},
+  {name:'BASIC PANT REPEAT',   ldr:[.30,.30,.35,.35,.40,.40,.45,.50,.55,.55]},
+  {name:'BASIC SHORT NEW',     ldr:[.25,.25,.30,.30,.35,.35,.40,.45,.50,.50]},
+  {name:'BASIC SHORT REPEAT',  ldr:[.30,.30,.35,.35,.40,.40,.45,.50,.55,.55]},
+];
+let factoryName='ACE2';
+const msState={line:[],buyer:[],dpline:[],gcline:[]};
+
+// ══════════════════════════════════════════════════════════
+//  STORAGE — Save/Load everything in localStorage
+// ══════════════════════════════════════════════════════════
+function saveAll(){
+  try{
+    // Styles: convert dates to ISO strings for storage
+    const stylesSerial=styles.map(s=>({
+      ...s,
+      psdDate:s.psdDate?s.psdDate.toISOString():null,
+      pfdDate:s.pfdDate?s.pfdDate.toISOString():null,
+      delDate:s.delDate?s.delDate.toISOString():null,
+      revDel:s.revDel?s.revDel.toISOString():null,
+    }));
+    localStorage.setItem(STORAGE_KEY,JSON.stringify({styles:stylesSerial,holidays,cats,factoryName,savedAt:new Date().toISOString()}));
+  }catch(e){console.warn('Storage save error:',e);}
+}
+
+function loadAll(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw)return false;
+    const d=JSON.parse(raw);
+    if(d.styles){
+      styles=d.styles.map(s=>({
+        ...s,
+        psdDate:s.psdDate?new Date(s.psdDate):null,
+        pfdDate:s.pfdDate?new Date(s.pfdDate):null,
+        delDate:s.delDate?new Date(s.delDate):null,
+        revDel:s.revDel?new Date(s.revDel):null,
+      }));
+    }
+    if(d.holidays)holidays=d.holidays;
+    if(d.cats)cats=d.cats;
+    if(d.factoryName)factoryName=d.factoryName;
+    return true;
+  }catch(e){console.warn('Storage load error:',e);return false;}
+}
+
+function backupData(){
+  const stylesSerial=styles.map(s=>({
+    ...s,
+    psdDate:s.psdDate?s.psdDate.toISOString():null,
+    pfdDate:s.pfdDate?s.pfdDate.toISOString():null,
+    delDate:s.delDate?s.delDate.toISOString():null,
+    revDel:s.revDel?s.revDel.toISOString():null,
+  }));
+  const data=JSON.stringify({styles:stylesSerial,holidays,cats,factoryName,savedAt:new Date().toISOString()},null,2);
+  const blob=new Blob([data],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`PlannerBackup_${new Date().toISOString().slice(0,10)}.json`;a.click();
+  URL.revokeObjectURL(url);
+}
+
+function restoreData(evt){
+  const file=evt.target.files[0];if(!file)return;
+  const rd=new FileReader();
+  rd.onload=e=>{
+    try{
+      const d=JSON.parse(e.target.result);
+      if(!confirm(`Restore backup from ${d.savedAt||'unknown date'}?\nThis will replace all current data.`))return;
+      if(d.styles){
+        styles=d.styles.map(s=>({
+          ...s,
+          psdDate:s.psdDate?new Date(s.psdDate):null,
+          pfdDate:s.pfdDate?new Date(s.pfdDate):null,
+          delDate:s.delDate?new Date(s.delDate):null,
+          revDel:s.revDel?new Date(s.revDel):null,
+        }));
+      }
+      if(d.holidays)holidays=d.holidays;
+      if(d.cats)cats=d.cats;
+      if(d.factoryName)factoryName=d.factoryName;
+      saveAll();
+      afterDataLoad();
+      alert('✅ Restore successful!');
+    }catch(ex){alert('Restore error: '+ex.message);}
+  };
+  rd.readAsText(file);
+  evt.target.value='';
+}
+
+// ══════════════════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════════════════
+const c0=v=>(!v&&v!==0)?'':Math.round(v).toLocaleString();
+const c2=v=>(!v&&v!==0)?'':Number(v).toFixed(2);
+const fmtD=d=>{if(!d)return'—';return d.getDate().toString().padStart(2,'0')+'-'+MN[d.getMonth()]+'-'+String(d.getFullYear()).slice(2);};
+const ymOf=d=>d?d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0'):'';
+const isWE=d=>d.getDay()===0||d.getDay()===6;
+const ec=e=>e>=.60?'#00884a':e>=.45?'#0066cc':e>=.35?'#e65100':'#b71c1c';
+const dtKey=d=>d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0');
+
+function isHoliday(dt){return holidays.some(h=>h.date===dtKey(dt));}
+function getHoliday(dt){return holidays.find(h=>h.date===dtKey(dt))||null;}
+function isNonWorking(dt){return isWE(dt)||isHoliday(dt);}
+
+function parseDate(v){
+  if(v==null||v==='')return null;
+  if(v instanceof Date)return isNaN(v)?null:v;
+  const n=parseFloat(v);
+  if(!isNaN(n)&&n>40000&&n<110000)return new Date(Math.round((n-25569)*86400000));
+  const d=new Date(v);return isNaN(d)?null:d;
+}
+
+const getLdr=cat=>{const c=cats.find(x=>x.name===cat);return c?c.ldr:[.40,.45,.50,.55,.55,.60,.60,.60,.60,.60];};
+const dOut=(mo,wh,smv,eff)=>smv>0?(mo*wh*60*eff)/smv:0;
+const dSAH=(out,smv)=>out*smv/60;
+
+function avgEffQty(qty,mo,wh,smv,ldr){
+  if(!smv||!qty)return 0;
+  let rem=qty,d=0,se=0,days=0;
+  while(rem>0&&d<1000){const e=d<ldr.length?ldr[d]:ldr[ldr.length-1];se+=e;days++;rem-=Math.max(1,dOut(mo,wh,smv,e));d++;}
+  return days?se/days:0;
+}
+function pdCalc(qty,mo,wh,smv,ldr){
+  if(!smv||!qty)return 0;
+  let rem=qty,d=0;
+  while(rem>0&&d<1000){rem-=Math.max(1,dOut(mo,wh,smv,d<ldr.length?ldr[d]:ldr[ldr.length-1]));d++;}
+  return d;
+}
+function nextWorkingDay(dt){
+  const d=new Date(dt);d.setDate(d.getDate()+1);
+  while(isNonWorking(d))d.setDate(d.getDate()+1);
+  return d;
+}
+function sameDay(a,b){return a&&b&&a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();}
+function inRange(dt,psd,pfd){
+  if(!psd||!pfd)return false;
+  const d=new Date(dt.getFullYear(),dt.getMonth(),dt.getDate()).getTime();
+  return d>=new Date(psd.getFullYear(),psd.getMonth(),psd.getDate()).getTime()&&
+         d<=new Date(pfd.getFullYear(),pfd.getMonth(),pfd.getDate()).getTime();
+}
+// All calendar days of month
+function allDaysOf(year,month){
+  const days=[],dm=new Date(year,month,0).getDate();
+  for(let d=1;d<=dm;d++)days.push(new Date(year,month-1,d));
+  return days;
+}
+// Working days only (no weekends, no holidays)
+function workDaysOf(year,month){
+  return allDaysOf(year,month).filter(d=>!isNonWorking(d));
+}
+function getStyleOnDay(ln,dt){
+  const ls=styles.filter(s=>s.line===ln&&s.psdDate&&s.pfdDate);
+  for(const s of ls)if(inRange(dt,s.psdDate,s.pfdDate))return s.style||'OPEN';
+  return '';
+}
+
+// ══════════════════════════════════════════════════════════
+//  MULTI-SELECT
+// ══════════════════════════════════════════════════════════
+function buildMS(key,items,btnId,dropId,cbName){
+  const drop=document.getElementById(dropId);
+  drop.innerHTML=`<div class="ms-item ms-all" onclick="msToggleAll('${key}','${dropId}','${btnId}',${JSON.stringify(items)},'${cbName}')">
+    <input type="checkbox" id="ms-all-${key}"><label style="cursor:pointer;font-weight:700">Select All</label></div>`+
+    items.map(v=>`<div class="ms-item">
+      <input type="checkbox" value="${v}" id="ms-${key}-${v}" onchange="msChange('${key}','${dropId}','${btnId}',${JSON.stringify(items)},'${cbName}')">
+      <label for="ms-${key}-${v}" style="cursor:pointer">${v}</label></div>`).join('');
+  msState[key]=[];updateMSBtn(key,btnId,items);
+}
+function msChange(key,dropId,btnId,items,cbName){
+  const cbs=[...document.querySelectorAll(`#${dropId} input[type=checkbox]:not(#ms-all-${key})`)];
+  msState[key]=cbs.filter(c=>c.checked).map(c=>c.value);
+  const a=document.getElementById(`ms-all-${key}`);
+  if(a)a.checked=msState[key].length===items.length;
+  updateMSBtn(key,btnId,items);window[cbName]&&window[cbName]();
+}
+function msToggleAll(key,dropId,btnId,items,cbName){
+  const a=document.getElementById(`ms-all-${key}`);
+  const on=a?!a.checked:true;
+  document.querySelectorAll(`#${dropId} input`).forEach(c=>c.checked=on);
+  if(a)a.checked=on;
+  msState[key]=on?[...items]:[]; updateMSBtn(key,btnId,items);
+  window[cbName]&&window[cbName]();
+}
+function updateMSBtn(key,btnId,items){
+  const btn=document.getElementById(btnId);if(!btn)return;
+  const s=msState[key];
+  btn.textContent=(!s||!s.length||s.length===items.length)?'All':s.length<=2?s.join(', '):s.length+' selected';
+}
+function toggleMS(key){
+  const d=document.getElementById(`ms-${key}-drop`);
+  document.querySelectorAll('.ms-drop').forEach(x=>{if(x.id!==`ms-${key}-drop`)x.classList.remove('open');});
+  d.classList.toggle('open');
+}
+document.addEventListener('click',e=>{if(!e.target.closest('.ms-wrap'))document.querySelectorAll('.ms-drop').forEach(d=>d.classList.remove('open'));});
+
+// ══════════════════════════════════════════════════════════
+//  EXCEL UPLOAD
+// ══════════════════════════════════════════════════════════
+function handleUpload(evt){
+  const file=evt.target.files[0];if(!file)return;
+  const rd=new FileReader();
+  rd.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'binary',raw:true});
+      let sn=wb.SheetNames.find(n=>!/day|gantt/i.test(n))||wb.SheetNames[0];
+      factoryName=file.name.replace(/\.(xlsx?|xlsm)$/i,'').slice(0,22);
+      document.getElementById('fl').textContent=factoryName;
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:true,defval:null});
+      parseMaster(rows);
+    }catch(ex){console.error(ex);alert('Read error: '+ex.message+'\n\nLine: '+(ex.lineNumber||''));}
+  };
+  rd.readAsBinaryString(file);
+  evt.target.value='';
+}
+
+function parseMaster(rows){
+  let hr=-1;
+  for(let i=0;i<Math.min(rows.length,15);i++){
+    const r=rows[i]||[];
+    if(r.some(c=>typeof c==='string'&&/style|line/i.test(c))&&r.filter(c=>c).length>=3){hr=i;break;}
+  }
+  if(hr<0){alert('Cannot find header row.');return;}
+  const H=rows[hr].map(h=>(h||'').toString().toUpperCase().trim());
+  const col=(...nms)=>{for(const n of nms){const i=H.findIndex(h=>h.includes(n));if(i>=0)return i;}return -1;};
+  const iLN=col('LINE NO','LINE N','LINE');
+  const iST=col('STATUS','STAT');   const iSY=col('STYLE');
+  const iDS=col('DESC');            const iPC=col('PRODUCT CAT','PROD CAT','CATEGORY','CAT');
+  const iBY=col('BUYER');           const iMR=col('MERCHANT','MERCH');
+  const iSN=col('SEASON');          const iOQ=col('ORDER QTY','ODER QTY','ORD QTY');
+  const iLA=col('LINE ALLOC','LINE ALL','ALLOC','ALLOCATION');
+  const iMO=col('NO OF MO','NUM MO','MO','OPERATOR');
+  const iWH=col('WORK HR','WORKING HR','WRK HR','HRS','HOUR');
+  const iSMV=col('SMV');            const iFOB=col('FOB');         const iCM=col('CM');
+  const iPSD=col('PSD','PROD START');const iPFD=col('PFD','PROD FINISH','FINISH');
+  const iDEL=col('FAC DEL','FAC-DEL','ORIG DEL','ORG DEL','DEL DATE','DELIVERY');
+  const iRDL=col('REV DEL','REVISED');const iDLY=col('DELAY');
+  styles=[];
+  for(let r=hr+1;r<rows.length;r++){
+    const row=rows[r]||[];
+    if(!row.some(c=>c!==null&&c!==''))continue;
+    const lineNum=parseInt(row[iLN>=0?iLN:0])||0;
+    const styleVal=(iSY>=0?row[iSY]:'')||'';
+    if(!lineNum&&!styleVal)continue;
+    const allocQ=parseFloat(iLA>=0?row[iLA]:null)||0;
+    const orderQ=parseFloat(iOQ>=0?row[iOQ]:null)||0;
+    styles.push({
+      id:r,line:lineNum,
+      status:((iST>=0?row[iST]:'')||'').toString().toUpperCase().trim(),
+      style:styleVal.toString().trim(),
+      desc:((iDS>=0?row[iDS]:'')||'').toString().trim(),
+      cat:((iPC>=0?row[iPC]:'')||'POLO NEW').toString().trim(),
+      buyer:((iBY>=0?row[iBY]:'')||'').toString().trim(),
+      merch:((iMR>=0?row[iMR]:'')||'').toString().trim(),
+      season:((iSN>=0?row[iSN]:'')||'').toString().trim(),
+      qty:allocQ||orderQ, allocQty:allocQ, orderQty:orderQ,
+      mo:parseFloat(iMO>=0?row[iMO]:null)||25,
+      wh:parseFloat(iWH>=0?row[iWH]:null)||10,
+      smv:parseFloat(iSMV>=0?row[iSMV]:null)||0,
+      fob:parseFloat(iFOB>=0?row[iFOB]:null)||0,
+      cm:parseFloat(iCM>=0?row[iCM]:null)||0,
+      psdDate:parseDate(iPSD>=0?row[iPSD]:null),
+      pfdDate:parseDate(iPFD>=0?row[iPFD]:null),
+      delDate:parseDate(iDEL>=0?row[iDEL]:null),
+      revDel:parseDate(iRDL>=0?row[iRDL]:null),
+      delay:parseInt(iDLY>=0?row[iDLY]:null)||0,
+    });
+  }
+  styles=styles.filter(s=>s.line||s.style);
+  // Auto-sequence: next style PSD = nextWorkingDay(prev PFD)
+  [...new Set(styles.map(s=>s.line).filter(Boolean))].sort((a,b)=>a-b).forEach(ln=>{
+    const ls=styles.filter(s=>s.line===ln&&s.psdDate&&s.pfdDate).sort((a,b)=>a.psdDate-b.psdDate);
+    for(let i=1;i<ls.length;i++){
+      const exp=nextWorkingDay(ls[i-1].pfdDate);
+      if(!sameDay(ls[i].psdDate,exp))ls[i].psdDate=new Date(exp);
+    }
+  });
+  saveAll();
+  afterDataLoad();
+}
+
+function afterDataLoad(){
+  document.getElementById('fl').textContent=factoryName;
+  initFilters();
+  renderMP();renderDP();renderGC();renderHolidays();
+  const hasData=styles.length>0;
+  document.getElementById('mp-empty').style.display=hasData?'none':'';
+  document.getElementById('mp-t').style.display=hasData?'':'none';
+  document.getElementById('dp-empty').style.display=hasData?'none':'';
+}
+
+// ══════════════════════════════════════════════════════════
+//  FILTERS
+// ══════════════════════════════════════════════════════════
+function initFilters(){
+  const lines=[...new Set(styles.map(s=>s.line).filter(Boolean))].sort((a,b)=>a-b).map(String);
+  const buyers=[...new Set(styles.map(s=>s.buyer).filter(Boolean))].sort();
+  const months=[...new Set(styles.flatMap(s=>[ymOf(s.psdDate),ymOf(s.pfdDate)]).filter(Boolean))].sort();
+  buildMS('line',lines,'ms-line-btn','ms-line-drop','renderMP');
+  buildMS('buyer',buyers,'ms-buyer-btn','ms-buyer-drop','renderMP');
+  buildMS('dpline',lines,'ms-dpline-btn','ms-dpline-drop','renderDP');
+  buildMS('gcline',lines,'ms-gcline-btn','ms-gcline-drop','renderGC');
+  const setOpts=(id,vals,def)=>{
+    const el=document.getElementById(id);if(!el)return;const prev=el.value;
+    el.innerHTML=`<option value="">${def}</option>`+vals.map(v=>`<option value="${v}">${v}</option>`).join('');
+    if(vals.includes(prev))el.value=prev;
+  };
+  setOpts('dp-mo',months,'Select Month');setOpts('gc-mo',months,'Select Month');
+  if(months.length){['dp-mo','gc-mo'].forEach(id=>{const el=document.getElementById(id);if(!el.value)el.value=months[0];});}
+  // Holiday year filter
+  const years=[...new Set([...months.map(m=>m.slice(0,4)),...holidays.map(h=>h.date.slice(0,4))])].sort();
+  if(!years.length)years.push(String(new Date().getFullYear()));
+  const yr=document.getElementById('hl-yr');if(yr){
+    const cy=yr.value;
+    yr.innerHTML=years.map(y=>`<option value="${y}">${y}</option>`).join('');
+    if(years.includes(cy))yr.value=cy;
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+//  MASTER PLAN
+// ══════════════════════════════════════════════════════════
+function getMPF(){
+  const sl=msState.line,sb=msState.buyer;
+  const st=document.getElementById('mp-st').value||'';
+  const q=(document.getElementById('mp-q').value||'').toLowerCase();
+  return styles.filter(s=>{
+    if(sl&&sl.length&&!sl.includes(String(s.line)))return false;
+    if(sb&&sb.length&&!sb.includes(s.buyer))return false;
+    if(st&&s.status!==st)return false;
+    if(q&&![s.style,s.buyer,s.desc].some(x=>(x||'').toLowerCase().includes(q)))return false;
+    return true;
+  });
+}
+function renderMP(){
+  const data=getMPF();
+  document.getElementById('mp-inf').textContent=data.length+' styles';
+  const tQ=data.reduce((a,s)=>a+s.qty,0);
+  const tF=data.reduce((a,s)=>a+s.qty*s.fob,0);
+  const tC=data.reduce((a,s)=>a+s.qty*s.cm,0);
+  document.getElementById('mp-sb').innerHTML=`
+    <div class="sc"><div class="sv">${data.length}</div><div class="sl">STYLES</div></div>
+    <div class="sc g"><div class="sv">${data.filter(s=>s.status==='CONFIRMED').length}</div><div class="sl">CONFIRMED</div></div>
+    <div class="sc"><div class="sv">${c0(tQ)}</div><div class="sl">TOTAL ALLOC QTY</div></div>
+    <div class="sc o"><div class="sv">$${c0(tF)}</div><div class="sl">TOTAL FOB VALUE</div></div>
+    <div class="sc r"><div class="sv">$${c0(tC)}</div><div class="sl">TOTAL CM VALUE</div></div>`;
+  const byLine={};data.forEach(s=>{const k=s.line||'?';(byLine[k]=byLine[k]||[]).push(s);});
+  let h='',ri=0;
+  Object.keys(byLine).sort((a,b)=>+a-+b).forEach(ln=>{
+    byLine[ln].forEach(s=>{
+      const ldr=getLdr(s.cat),ae=avgEffQty(s.qty,s.mo,s.wh,s.smv,ldr);
+      const out=Math.round(dOut(s.mo,s.wh,s.smv,ae));
+      const pd=pdCalc(s.qty,s.mo,s.wh,s.smv,ldr);
+      const pct=Math.round(ae*100),fc=ec(ae);
+      const badge=s.status==='CONFIRMED'?'bc':s.status==='PROJECTION'?'bp':'bo';
+      const dly=s.delay||0;
+      const dc=dly>0?'color:#b71c1c;font-weight:800':dly<0?'color:#00884a;font-weight:800':'';
+      h+=`<tr class="${ri%2?'':'ev'}">
+        <td><b>L${s.line||'?'}</b></td>
+        <td><span class="bdg ${badge}">${s.status||'?'}</span></td>
+        <td style="text-align:left;font-weight:700;white-space:normal;max-width:150px">${s.style}</td>
+        <td style="text-align:left;font-size:10px;color:var(--mut);white-space:normal;max-width:110px">${s.desc}</td>
+        <td><span style="background:#d8eeff;color:#004fa3;border-radius:8px;padding:1px 7px;font-size:9.5px;font-weight:700">${s.cat}</span></td>
+        <td style="font-size:10.5px">${s.buyer||'—'}</td>
+        <td style="font-weight:800;color:#004fa3">${c0(s.qty)}</td>
+        <td>${s.smv||'—'}</td><td>${s.mo}</td><td>${s.wh}</td>
+        <td><div class="ew"><div class="etr"><div class="efl" style="width:${pct}%;background:${fc}"></div></div>
+          <span style="font-size:10px;font-weight:700;color:${fc}">${pct}%</span></div></td>
+        <td style="font-weight:700;color:var(--acc)">${c0(out)}</td><td>${pd}</td>
+        <td style="color:var(--grn);font-weight:700">$${c2(s.fob)}</td>
+        <td style="color:#7b1fa2;font-weight:700">$${c2(s.cm)}</td>
+        <td>${fmtD(s.psdDate)}</td><td>${fmtD(s.pfdDate)}</td>
+        <td>${fmtD(s.delDate)}</td><td>${fmtD(s.revDel)}</td>
+        <td style="${dc}">${dly>0?'+'+dly:dly||'0'} d</td>
+      </tr>`;ri++;
+    });
+  });
+  document.getElementById('mp-body').innerHTML=h;
+}
+
+// ══════════════════════════════════════════════════════════
+//  GANTT CHART
+//  - One ROW per LINE
+//  - Columns = all calendar days of selected month
+//  - Weekends: grey, Holidays: gold, Production: colored block
+//  - Style name shown only on FIRST day of each style block
+// ══════════════════════════════════════════════════════════
+function renderGC(){
+  const mf=document.getElementById('gc-mo').value||'';
+  const selLines=msState.gcline;
+  if(!mf){document.getElementById('gc-con').innerHTML='<div class="empty-state"><div class="ei">📊</div><div class="et2">Select a month</div></div>';return;}
+  const [yr,mo]=mf.split('-').map(Number);
+  const allDays=allDaysOf(yr,mo);
+  const mLbl=MN[mo-1]+' '+yr;
+  let lineNums=[...new Set(styles.map(s=>s.line).filter(Boolean))].sort((a,b)=>a-b);
+  if(selLines&&selLines.length)lineNums=lineNums.filter(l=>selLines.includes(String(l)));
+  // Assign style→color per line
+  const scMap={};
+  lineNums.forEach(ln=>{
+    let ci=0;const seen={};
+    styles.filter(s=>s.line===ln).sort((a,b)=>(a.psdDate||0)-(b.psdDate||0))
+          .forEach(s=>{if(s.style&&!seen[s.style])seen[s.style]=ci++;});
+    scMap[ln]=seen;
+  });
+  // QCO per working day
+  const qco=allDays.map(dt=>{
+    if(isNonWorking(dt))return 0;
+    let c=0;
+    lineNums.forEach(ln=>{styles.filter(s=>s.line===ln&&s.psdDate).forEach(s=>{if(sameDay(dt,s.psdDate))c++;});});
+    return c;
+  });
+  // Header rows: date numbers, then day names
+  const hdr1=allDays.map(d=>{
+    if(isHoliday(d)){const h=getHoliday(d);return`<th class="dh-hol" title="${h.name}">${d.getDate()}</th>`;}
+    if(isWE(d))return`<th class="dh" style="background:#223050;color:#5a6878">${d.getDate()}</th>`;
+    return`<th class="dh">${d.getDate()}</th>`;
+  }).join('');
+  const hdr2=allDays.map(d=>{
+    if(isHoliday(d))return`<th class="dy-hol">${DN[d.getDay()]}</th>`;
+    if(isWE(d))return`<th class="dy" style="color:#3a4a5a">${DN[d.getDay()]}</th>`;
+    return`<th class="dy">${DN[d.getDay()]}</th>`;
+  }).join('');
+  let h=`<table class="gc" style="min-width:${62+allDays.length*52}px">
+  <thead>
+    <tr><th class="lh" rowspan="2">${mLbl}</th>${hdr1}</tr>
+    <tr>${hdr2}</tr>
+  </thead><tbody>`;
+  lineNums.forEach(ln=>{
+    let prev='';
+    const cells=allDays.map(dt=>{
+      if(isHoliday(dt)){const hol=getHoliday(dt);prev='';
+        return`<td class="hol-cell" title="${hol.name}"><div class="gc-c" style="color:#7a5c00;font-size:8.5px">🎌${hol.name.slice(0,10)}</div></td>`;}
+      if(isWE(dt)){prev='';return`<td style="background:var(--we-bg);border:1px solid #ccd4de"></td>`;}
+      const sn=getStyleOnDay(ln,dt);
+      if(!sn){prev='';return`<td class="empty-cell"></td>`;}
+      const isFirst=sn!==prev; prev=sn;
+      const ci=scMap[ln]?.[sn]||0;
+      const bg=GC_COLS[ci%GC_COLS.length];
+      return`<td class="gc-blk" style="background:${bg}">
+        <div class="gc-c" style="color:#fff">${isFirst?sn:''}</div></td>`;
+    }).join('');
+    h+=`<tr><td class="lc">L${ln}</td>${cells}</tr>`;
+  });
+  // QCO row (working days only)
+  const wdCount=allDays.filter(d=>!isNonWorking(d)).length;
+  h+=`<tr><td class="qr">QCO-${wdCount}</td>
+    ${allDays.map((dt,di)=>{
+      if(isNonWorking(dt))return`<td style="background:#08182a;border:1px solid #1a3050"></td>`;
+      const n=qco[di];
+      return`<td class="qv" style="color:${n>=4?'#ffd700':n>=2?'#5bc0ff':n>=1?'#88aacc':'#334455'}">${n||''}</td>`;
+    }).join('')}
+  </tr></tbody></table>`;
+  document.getElementById('gc-con').innerHTML=h;
+}
+
+// ══════════════════════════════════════════════════════════
+//  DAY BY DAY PLAN — EXACT EXCEL FORMAT
+//
+//  Per LINE → ONE set of rows (11 rows):
+//    STYLE, FOB($), CM($), SMV, PLAN TARGET,
+//    T.PLAN CUM, PLAN HRS, PLAN HRS CUM,
+//    FOB VALUE, CM VALUE, EFFI
+//
+//  Each cell shows the value for whichever style is active
+//  that day. Style changes mid-row within the same row set.
+//  Weekends = grey, Holidays = gold, no production = blank
+// ══════════════════════════════════════════════════════════
+function renderDP(){
+  if(!styles.length){document.getElementById('dp-con').innerHTML='';return;}
+  const selLines=msState.dpline;
+  const mf=document.getElementById('dp-mo').value||'';
+  const DEF_MO=parseInt(document.getElementById('dp-MO').value)||25;
+  const DEF_WH=parseInt(document.getElementById('dp-WH').value)||10;
+  if(!mf){document.getElementById('dp-con').innerHTML='<div class="empty-state" style="padding:30px"><div class="et2">Select a month</div></div>';return;}
+  const [yr,mo]=mf.split('-').map(Number);
+  const allDays=allDaysOf(yr,mo);
+
+  let data=styles.filter(s=>{
+    if(selLines&&selLines.length&&!selLines.includes(String(s.line)))return false;
+    if(!s.psdDate&&!s.pfdDate)return false;
+    const mS=new Date(yr,mo-1,1),mE=new Date(yr,mo,0,23,59,59);
+    return(s.psdDate||mS)<=mE&&(s.pfdDate||mE)>=mS;
+  });
+  const lineNums=[...new Set(data.map(s=>s.line).filter(Boolean))].sort((a,b)=>a-b);
+  const mlbl=`FACTORY — MONTH OF ${MN[mo-1].toUpperCase()} ${yr} PRODUCTION PLAN`;
+
+  // ── Non-working cell ──
+  const nwCell=dt=>{
+    if(isHoliday(dt)){const hol=getHoliday(dt);return`<td class="hol-day" title="${hol.name}">🎌</td>`;}
+    return`<td class="we-cell"></td>`;
+  };
+
+  // ── Header: date row + day row ──
+  const dateHdrs=allDays.map(d=>{
+    if(isHoliday(d)){const h=getHoliday(d);return`<th class="th-hol" title="${h.name}">${d.getDate()}<br><small>${MN[d.getMonth()]}</small></th>`;}
+    if(isWE(d))return`<th class="th-we">${d.getDate()}<br><small>${MN[d.getMonth()]}</small></th>`;
+    return`<th class="th-d">${d.getDate()}<br><small>${MN[d.getMonth()]}</small></th>`;
+  }).join('');
+  const dayHdrs=allDays.map(d=>{
+    if(isHoliday(d))return`<th class="th-hol" style="font-size:8px">${DN[d.getDay()]}</th>`;
+    if(isWE(d))return`<th class="th-we" style="font-size:8px">${DN[d.getDay()]}</th>`;
+    return`<th class="th-d" style="font-size:8px">${DN[d.getDay()]}</th>`;
+  }).join('');
+  const smHdrs=['PLAN QTY','PLAN SAH','CM VALUE','FOB VALUE','CUM QTY','CUM SAH']
+    .map(t=>`<th class="th-sm">${t}</th>`).join('');
+
+  let h=`<table class="dp" style="min-width:${220+allDays.length*50+420}px">
+  <thead>
+    <tr>
+      <th class="th-rtype" rowspan="2">LINE NO</th>
+      <th class="th-style" rowspan="2">DATE</th>
+      ${dateHdrs}${smHdrs}
+    </tr>
+    <tr>${dayHdrs}<th class="th-sm" colspan="6">MONTH TOTAL</th></tr>
+  </thead><tbody>`;
+
+  // Grand factory daily accumulators
+  const gPlan=allDays.map(()=>0), gSAH=allDays.map(()=>0);
+  const gCM=allDays.map(()=>0),   gFOB=allDays.map(()=>0);
+  const lineSums=[];
+
+  lineNums.forEach(ln=>{
+    // All styles for this line, sorted by PSD
+    const ls=data.filter(s=>s.line===ln).sort((a,b)=>(a.psdDate||0)-(b.psdDate||0));
+    const lTotQty=ls.reduce((a,s)=>a+s.qty,0);
+
+    // ── Pre-compute per-day values for this LINE across ALL styles ──
+    // For each day: which style is active? What are its values?
+    // We track ldrIdx per style separately
+    const styleLdrIdx={};
+    ls.forEach(s=>{ styleLdrIdx[s.id]=0; });
+
+    // Per-day data arrays (one entry per calendar day)
+    const D={
+      styleName:[], fob:[], cm:[], smv:[],
+      plan:[], cumP:[], hrs:[], cumH:[],
+      fobV:[], cmV:[], eff:[]
+    };
+
+    let cumPlan=0, cumSAH=0;
+
+    allDays.forEach((dt,di)=>{
+      if(isNonWorking(dt)){
+        Object.values(D).forEach(arr=>arr.push('NW'));
+        return;
+      }
+      // Find which style is active today
+      const s=ls.find(x=>inRange(dt,x.psdDate,x.pfdDate));
+      if(!s){
+        // No style active — show cumulative carry-forward, blank others
+        D.styleName.push(null); D.fob.push(null); D.cm.push(null); D.smv.push(null);
+        D.plan.push(null);
+        D.cumP.push(cumPlan>0?cumPlan:null);
+        D.hrs.push(null);
+        D.cumH.push(cumSAH>0?cumSAH:null);
+        D.fobV.push(null); D.cmV.push(null); D.eff.push(null);
+        return;
+      }
+      const ldr=getLdr(s.cat);
+      const MO=s.mo||DEF_MO, WH=s.wh||DEF_WH;
+      const idx=styleLdrIdx[s.id];
+      const eff=idx<ldr.length?ldr[idx]:ldr[ldr.length-1];
+      const out=dOut(MO,WH,s.smv||1,eff);
+      const sah=dSAH(out,s.smv||1);
+      const fobv=out*(s.fob||0), cmv=out*(s.cm||0);
+      cumPlan+=out; cumSAH+=sah;
+      styleLdrIdx[s.id]++;
+      gPlan[di]+=out; gSAH[di]+=sah; gCM[di]+=cmv; gFOB[di]+=fobv;
+      D.styleName.push(s.style);
+      D.fob.push(s.fob); D.cm.push(s.cm); D.smv.push(s.smv);
+      D.plan.push(out); D.cumP.push(cumPlan);
+      D.hrs.push(sah);  D.cumH.push(cumSAH);
+      D.fobV.push(fobv); D.cmV.push(cmv); D.eff.push(eff);
+    });
+
+    // Month totals
+    const mPlan=D.plan.reduce((a,v)=>a+(v&&v!=='NW'?v:0),0);
+    const mSAH=D.hrs.reduce((a,v)=>a+(v&&v!=='NW'?v:0),0);
+    const mFOB=D.fobV.reduce((a,v)=>a+(v&&v!=='NW'?v:0),0);
+    const mCM=D.cmV.reduce((a,v)=>a+(v&&v!=='NW'?v:0),0);
+
+    lineSums.push({line:ln,chg:ls.length,plan:mPlan,sah:mSAH,fob:mFOB,cm:mCM,
+      cumPlan,cumSAH});
+
+    // LINE header
+    h+=`<tr class="r-lh">
+      <td class="c-rtype" colspan="2">LINE ${ln} &nbsp;|&nbsp; ${ls.length} style(s) &nbsp;|&nbsp; Alloc Qty: ${lTotQty.toLocaleString()}</td>
+      ${allDays.map(()=>`<td style="background:#1565c0;border:1px solid #1976d2;padding:0;height:4px"></td>`).join('')}
+      <td colspan="6" style="background:#1565c0;border:1px solid #1976d2"></td>
+    </tr>`;
+
+    // ── Generic cell renderer ──
+    const cell=(arr,di,fmt,styleStr)=>{
+      const v=arr[di]; const dt=allDays[di];
+      if(v==='NW') return nwCell(dt);
+      if(v===null||v===undefined) return`<td style="background:#f8fafc"></td>`;
+      let txt;
+      if(fmt==='pct') txt=Math.round(v*100)+'%';
+      else if(fmt==='$2') txt='$'+c2(v);
+      else if(fmt==='$0') txt='$'+c0(v);
+      else if(fmt==='dec') txt=c2(v);
+      else txt=c0(v); // int
+      return`<td style="${styleStr||''}">${txt}</td>`;
+    };
+
+    // ── ROW 1: STYLE — show style name, color-coded by eff% ──
+    // When style changes, cell gets different background color
+    // Assign a color per style index
+    const styleColorMap={};
+    ls.forEach((s,i)=>{ styleColorMap[s.style]=GC_COLS[i%GC_COLS.length]; });
+
+    const styleCells=allDays.map((dt,di)=>{
+      const v=D.styleName[di];
+      if(v==='NW') return nwCell(dt);
+      if(v===null) return`<td style="background:#f4f6fa"></td>`;
+      const bg=styleColorMap[v]||'#1565c0';
+      const eff=D.eff[di];
+      return`<td style="background:${bg};color:#fff;text-align:center;font-size:9px;font-weight:800;white-space:nowrap;overflow:hidden;max-width:55px" title="${v}">${v.length>12?v.slice(0,12)+'…':v}</td>`;
+    }).join('');
+
+    h+=`<tr class="r-st">
+      <td class="c-rtype" style="border-left:4px solid #ff6f00">STYLE</td>
+      <td class="c-style">${ls.map(s=>`<span style="font-size:8px;background:${styleColorMap[s.style]};color:#fff;border-radius:3px;padding:1px 4px;margin:1px;display:inline-block">${s.style.slice(0,14)}</span>`).join('')}</td>
+      ${styleCells}
+      <td class="sm" colspan="6" style="text-align:left;font-size:9px;padding:2px 6px">
+        ${ls.map(s=>`${s.style} | SMV:${s.smv} | MO:${s.mo||DEF_MO} | ${Math.round(avgEffQty(s.qty,s.mo||DEF_MO,s.wh||DEF_WH,s.smv,getLdr(s.cat))*100)}%`).join(' → ')}
+      </td>
+    </tr>`;
+
+    // ── ROW 2: FOB ($) ──
+    h+=`<tr class="r-fb"><td class="c-rtype">FOB ($)</td>
+      <td class="c-style">${ls.map(s=>`<span style="font-size:8px;color:#006633">${s.style.slice(0,10)}: $${c2(s.fob)}</span>`).join('<br>')}</td>
+      ${allDays.map((_,di)=>cell(D.fob,di,'$2','color:#006633;text-align:right')).join('')}
+      <td class="sm" colspan="6"></td>
+    </tr>`;
+
+    // ── ROW 3: CM ($) ──
+    h+=`<tr class="r-cm"><td class="c-rtype">CM ($)</td>
+      <td class="c-style">${ls.map(s=>`<span style="font-size:8px;color:#b34000">${s.style.slice(0,10)}: $${c2(s.cm)}</span>`).join('<br>')}</td>
+      ${allDays.map((_,di)=>cell(D.cm,di,'$2','color:#b34000;text-align:right')).join('')}
+      <td class="sm" colspan="6"></td>
+    </tr>`;
+
+    // ── ROW 4: SMV ──
+    h+=`<tr class="r-sv"><td class="c-rtype">SMV</td>
+      <td class="c-style">${ls.map(s=>`<span style="font-size:8px;color:#5a0090">${s.style.slice(0,10)}: ${s.smv}</span>`).join('<br>')}</td>
+      ${allDays.map((_,di)=>cell(D.smv,di,'dec','color:#5a0090;text-align:right')).join('')}
+      <td class="sm" colspan="6"></td>
+    </tr>`;
+
+    // ── ROW 5: PLAN TARGET ──
+    h+=`<tr class="r-pt"><td class="c-rtype" style="border-left:4px solid #1565c0">PLAN TARGET</td>
+      <td class="c-style"></td>
+      ${allDays.map((_,di)=>cell(D.plan,di,'int','font-weight:800;color:#1565c0;text-align:right')).join('')}
+      <td class="sm" style="color:#fff;font-weight:900">${c0(mPlan)}</td>
+      <td class="sm"></td><td class="sm"></td><td class="sm"></td>
+      <td class="sm" style="color:#90caf9">${c0(cumPlan)}</td>
+      <td class="sm"></td>
+    </tr>`;
+
+    // ── ROW 6: T.PLAN CUM ──
+    h+=`<tr class="r-cu"><td class="c-rtype">T. PLAN CUM</td>
+      <td class="c-style"></td>
+      ${allDays.map((dt,di)=>{
+        const v=D.cumP[di];
+        if(v==='NW') return nwCell(dt);
+        if(v===null) return`<td style="background:#ede7f6"></td>`;
+        return`<td style="font-style:italic;color:#3366cc;font-weight:700;text-align:right">${c0(v)}</td>`;
+      }).join('')}
+      <td class="sm" style="color:#3af;font-style:italic">${c0(cumPlan)}</td>
+      <td class="sm" colspan="5"></td>
+    </tr>`;
+
+    // ── ROW 7: PLAN HRS ──
+    h+=`<tr class="r-sh"><td class="c-rtype">PLAN HRS</td>
+      <td class="c-style"></td>
+      ${allDays.map((_,di)=>cell(D.hrs,di,'int','color:#006688;text-align:right')).join('')}
+      <td class="sm"></td>
+      <td class="sm" style="color:#7df">${c0(mSAH)}</td>
+      <td class="sm" colspan="4"></td>
+    </tr>`;
+
+    // ── ROW 8: PLAN HRS CUM ──
+    h+=`<tr class="r-cs"><td class="c-rtype">PLAN HRS CUM</td>
+      <td class="c-style"></td>
+      ${allDays.map((dt,di)=>{
+        const v=D.cumH[di];
+        if(v==='NW') return nwCell(dt);
+        if(v===null) return`<td style="background:#e0f2f1"></td>`;
+        return`<td style="font-style:italic;color:#006688;text-align:right">${c0(v)}</td>`;
+      }).join('')}
+      <td class="sm"></td>
+      <td class="sm" style="color:#7df;font-style:italic">${c0(cumSAH)}</td>
+      <td class="sm" colspan="4"></td>
+    </tr>`;
+
+    // ── ROW 9: FOB VALUE ──
+    h+=`<tr class="r-fv"><td class="c-rtype">FOB VALUE</td>
+      <td class="c-style"></td>
+      ${allDays.map((_,di)=>cell(D.fobV,di,'$0','color:#006633;text-align:right')).join('')}
+      <td class="sm"></td><td class="sm"></td>
+      <td class="sm" style="color:#8f8">$${c0(mFOB)}</td>
+      <td class="sm" colspan="3"></td>
+    </tr>`;
+
+    // ── ROW 10: CM VALUE ──
+    h+=`<tr class="r-cmv"><td class="c-rtype">CM VALUE</td>
+      <td class="c-style"></td>
+      ${allDays.map((_,di)=>cell(D.cmV,di,'$0','color:#cc6600;text-align:right')).join('')}
+      <td class="sm" colspan="3"></td>
+      <td class="sm" style="color:#fca">$${c0(mCM)}</td>
+      <td class="sm" colspan="2"></td>
+    </tr>`;
+
+    // ── ROW 11: EFFI ──
+    h+=`<tr class="r-ef"><td class="c-rtype">EFFI</td>
+      <td class="c-style"></td>
+      ${allDays.map((dt,di)=>{
+        const v=D.eff[di];
+        if(v==='NW') return nwCell(dt);
+        if(v===null) return`<td style="background:#dceefb"></td>`;
+        const col=ec(v);
+        return`<td style="font-weight:800;color:${col};text-align:center">${Math.round(v*100)}%</td>`;
+      }).join('')}
+      <td class="sm" colspan="6"></td>
+    </tr>`;
+
+    // Line separator
+    h+=`<tr class="r-sep"><td colspan="${2+allDays.length+6}"></td></tr>`;
+  }); // end lineNums
+
+  // ── FACTORY TOTAL ROWS ──
+  const ftRow=(lbl,arr,colFn,prefix='')=>`<tr class="r-ft">
+    <td class="c-rtype" colspan="2" style="background:#0d47a1;padding-left:10px;font-size:11px;font-weight:900">${lbl}</td>
+    ${allDays.map((dt,di)=>{
+      if(isNonWorking(dt)){
+        if(isHoliday(dt))return`<td style="background:#fff8e1;border:1px solid #f9a825;text-align:center;color:#e65100;font-size:9px">🎌</td>`;
+        return`<td style="background:#eceff1;border:1px solid #b0bec5"></td>`;
+      }
+      const v=arr[di];const col=colFn?colFn(v):'#fff';
+      return`<td style="background:#1565c0;color:${col};font-weight:900;font-size:11px;text-align:right">${v?prefix+c0(v):''}</td>`;
+    }).join('')}
+    <td class="sm" colspan="6"></td>
+  </tr>`;
+
+  h+=ftRow('TTL PLAN TARGET',gPlan,()=>'#e3f2fd');
+  h+=ftRow('TTL SAH / HRS',gSAH,()=>'#b3e5fc');
+  h+=ftRow('TTL CM VALUE',gCM,()=>'#ffe0b2','$');
+  h+=ftRow('TTL FOB VALUE',gFOB,()=>'#c8e6c9','$');
+  // Cumulative
+  let cr=0;
+  h+=`<tr class="r-ft">
+    <td class="c-rtype" colspan="2" style="background:#0d47a1;padding-left:10px;font-size:11px;font-weight:900">TTL CUM PLAN</td>
+    ${allDays.map((dt,di)=>{
+      if(isNonWorking(dt)){
+        if(isHoliday(dt))return`<td style="background:#fff8e1;border:1px solid #f9a825;text-align:center;color:#e65100;font-size:9px">🎌</td>`;
+        return`<td style="background:#eceff1;border:1px solid #b0bec5"></td>`;
+      }
+      cr+=gPlan[di];
+      return`<td style="background:#1976d2;color:#bbdefb;font-style:italic;font-weight:700;text-align:right">${c0(cr)}</td>`;
+    }).join('')}
+    <td class="sm" colspan="6"></td>
+  </tr></tbody></table>`;
+
+  // ── LINE SUMMARY TABLE ──
+  h+=`<div style="border-top:3px solid #1565c0">
+  <div style="background:#0d47a1;color:#fff;font-size:12px;font-weight:900;padding:6px 12px">LINE SUMMARY — ${MN[mo-1]} ${yr}</div>
+  <table class="ct" style="max-width:100%">
+    <thead><tr>
+      <th style="text-align:left">Line</th><th>Styles</th>
+      <th>Plan Qty</th><th>Plan SAH</th>
+      <th>Total CM</th><th>Total FOB</th>
+      <th>Cum Qty</th><th>Cum SAH</th>
+    </tr></thead><tbody>`;
+  lineSums.forEach((s,i)=>{
+    h+=`<tr class="${i%2?'':'ev'}">
+      <td style="font-weight:900">L${s.line}</td><td>${s.chg}</td>
+      <td style="font-weight:800;color:#004fa3">${c0(s.plan)}</td>
+      <td>${c0(s.sah)}</td>
+      <td style="color:#7b0c27;font-weight:700">$${c0(s.cm)}</td>
+      <td style="color:#1b5e20;font-weight:700">$${c0(s.fob)}</td>
+      <td style="color:#3366cc;font-weight:700">${c0(s.cumPlan)}</td>
+      <td style="color:#006688;font-weight:700">${c0(s.cumSAH)}</td>
+    </tr>`;
+  });
+  const tot=lineSums.reduce((a,s)=>({plan:a.plan+s.plan,sah:a.sah+s.sah,cm:a.cm+s.cm,
+    fob:a.fob+s.fob,cumPlan:a.cumPlan+s.cumPlan,cumSAH:a.cumSAH+s.cumSAH}),
+    {plan:0,sah:0,cm:0,fob:0,cumPlan:0,cumSAH:0});
+  h+=`<tr style="background:var(--navy);color:#fff;font-weight:900">
+    <td>Total</td><td>${lineSums.length}</td>
+    <td>${c0(tot.plan)}</td><td>${c0(tot.sah)}</td>
+    <td>$${c0(tot.cm)}</td><td>$${c0(tot.fob)}</td>
+    <td>${c0(tot.cumPlan)}</td><td>${c0(tot.cumSAH)}</td>
+  </tr></tbody></table></div>`;
+
+  document.getElementById('dp-con').innerHTML=h;
+}
+// ══════════════════════════════════════════════════════════
+//  HOLIDAYS
+// ══════════════════════════════════════════════════════════
+function renderHolidays(){
+  const yr=document.getElementById('hl-yr')?.value||String(new Date().getFullYear());
+  const yHols=holidays.filter(h=>h.date.startsWith(yr)).sort((a,b)=>a.date.localeCompare(b.date));
+  const tbody=document.getElementById('hl-body');
+  const empty=document.getElementById('hl-empty');
+  if(!yHols.length){tbody.innerHTML='';empty.style.display='';return;}
+  empty.style.display='none';
+  const typeCol={public:'#004fa3',poya:'#7b1fa2',national:'#b71c1c',factory:'#2e7d32'};
+  tbody.innerHTML=yHols.map((h,i)=>{
+    const d=new Date(h.date+'T00:00:00');
+    const tc=typeCol[h.type]||'#546e8a';
+    return`<tr class="${i%2?'':'ev'}">
+      <td style="font-weight:700">${h.date}</td>
+      <td>${DN[d.getDay()]}</td>
+      <td style="font-weight:700">${h.name}</td>
+      <td><span style="background:${tc}22;color:${tc};border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700">${h.type}</span></td>
+      <td>
+        <button class="btn b-blu" style="padding:1px 7px;height:22px;font-size:10px" onclick="openHM(${holidays.indexOf(h)})">✏</button>
+        <button class="btn b-red" style="padding:1px 7px;height:22px;font-size:10px;margin-left:2px" onclick="delHoliday(${holidays.indexOf(h)})">🗑</button>
+      </td>
+    </tr>`;
+  }).join('');
+  // Summary
+  const typeCounts={};yHols.forEach(h=>{typeCounts[h.type]=(typeCounts[h.type]||0)+1;});
+  document.getElementById('hl-summary').innerHTML=
+    `<b>${yHols.length}</b> holidays in ${yr}<br>`+
+    Object.entries(typeCounts).map(([t,n])=>`${n} × ${t}`).join('<br>');
+  // Refresh charts
+  if(styles.length){renderGC();renderDP();}
+}
+function openHM(idx){
+  document.getElementById('hm-idx').value=idx;
+  if(idx>=0&&idx<holidays.length){
+    const h=holidays[idx];
+    document.getElementById('hm-date').value=h.date;
+    document.getElementById('hm-name').value=h.name;
+    document.getElementById('hm-type').value=h.type;
+  } else {
+    document.getElementById('hm-date').value='';
+    document.getElementById('hm-name').value='';
+    document.getElementById('hm-type').value='public';
+  }
+  document.getElementById('hm-ov').classList.add('on');
+}
+function closeHM(){document.getElementById('hm-ov').classList.remove('on');}
+function saveHoliday(){
+  const date=document.getElementById('hm-date').value;
+  const name=document.getElementById('hm-name').value.trim();
+  const type=document.getElementById('hm-type').value;
+  if(!date||!name){alert('Date and Name required');return;}
+  const idx=parseInt(document.getElementById('hm-idx').value);
+  const entry={date,name,type};
+  if(idx>=0&&idx<holidays.length)holidays[idx]=entry;
+  else{
+    if(holidays.some(h=>h.date===date)){alert('Holiday already exists for this date.');return;}
+    holidays.push(entry);
+  }
+  holidays.sort((a,b)=>a.date.localeCompare(b.date));
+  saveAll();closeHM();initFilters();renderHolidays();
+}
+function delHoliday(i){
+  if(!confirm('Delete "'+holidays[i].name+'"?'))return;
+  holidays.splice(i,1);saveAll();renderHolidays();
+  if(styles.length){renderGC();renderDP();}
+}
+function addSLHolidays(){addHolidayList(SL2025);}
+function addSLHolidays2026(){addHolidayList(SL2026);}
+function addHolidayList(list){
+  let added=0;
+  list.forEach(h=>{if(!holidays.some(x=>x.date===h.date)){holidays.push(h);added++;}});
+  holidays.sort((a,b)=>a.date.localeCompare(b.date));
+  saveAll();initFilters();renderHolidays();
+  alert(`Added ${added} holidays.`);
+}
+
+const SL2025=[
+  {date:'2025-01-01',name:"New Year's Day",type:'public'},
+  {date:'2025-01-13',name:"Thai Pongal",type:'public'},
+  {date:'2025-01-14',name:"Tamil Thai Pongal",type:'public'},
+  {date:'2025-02-04',name:"Independence Day",type:'national'},
+  {date:'2025-02-12',name:"Navam Full Moon Poya",type:'poya'},
+  {date:'2025-02-26',name:"Mahasivarathri",type:'public'},
+  {date:'2025-03-13',name:"Medin Full Moon Poya",type:'poya'},
+  {date:'2025-03-31',name:"Id-ul-Fitr (Ramazan)",type:'public'},
+  {date:'2025-04-13',name:"Sinhala & Tamil New Year Eve",type:'public'},
+  {date:'2025-04-14',name:"Sinhala & Tamil New Year",type:'public'},
+  {date:'2025-04-14',name:"Bak Full Moon Poya",type:'poya'},
+  {date:'2025-04-18',name:"Good Friday",type:'public'},
+  {date:'2025-05-01',name:"Labour Day",type:'public'},
+  {date:'2025-05-12',name:"Vesak Full Moon Poya",type:'poya'},
+  {date:'2025-05-13',name:"Vesak Day",type:'public'},
+  {date:'2025-06-07',name:"Id-ul-Alha (Hadji)",type:'public'},
+  {date:'2025-06-11',name:"Poson Full Moon Poya",type:'poya'},
+  {date:'2025-07-10',name:"Esala Full Moon Poya",type:'poya'},
+  {date:'2025-08-09',name:"Nikini Full Moon Poya",type:'poya'},
+  {date:'2025-09-05',name:"Milad-un-Nabi",type:'public'},
+  {date:'2025-09-07',name:"Binara Full Moon Poya",type:'poya'},
+  {date:'2025-10-06',name:"Vap Full Moon Poya",type:'poya'},
+  {date:'2025-10-20',name:"Deepavali",type:'public'},
+  {date:'2025-11-05',name:"Il Full Moon Poya",type:'poya'},
+  {date:'2025-12-04',name:"Unduvap Full Moon Poya",type:'poya'},
+  {date:'2025-12-25',name:"Christmas Day",type:'public'},
+];
+const SL2026=[
+  {date:'2026-01-01',name:"New Year's Day",type:'public'},
+  {date:'2026-01-14',name:"Tamil Thai Pongal",type:'public'},
+  {date:'2026-02-04',name:"Independence Day",type:'national'},
+  {date:'2026-03-20',name:"Navam Full Moon Poya / Mahasivarathri",type:'poya'},
+  {date:'2026-03-22',name:"Id-ul-Fitr (Ramazan)",type:'public'},
+  {date:'2026-04-13',name:"Sinhala & Tamil New Year Eve",type:'public'},
+  {date:'2026-04-14',name:"Sinhala & Tamil New Year",type:'public'},
+  {date:'2026-04-03',name:"Good Friday",type:'public'},
+  {date:'2026-05-01',name:"Labour Day / Vesak Full Moon Poya",type:'public'},
+  {date:'2026-05-02',name:"Vesak Day",type:'public'},
+  {date:'2026-05-29',name:"Id-ul-Alha (Hadji)",type:'public'},
+  {date:'2026-05-30',name:"Poson Full Moon Poya",type:'poya'},
+  {date:'2026-06-28',name:"Esala Full Moon Poya",type:'poya'},
+  {date:'2026-07-28',name:"Nikini Full Moon Poya",type:'poya'},
+  {date:'2026-08-24',name:"Milad-un-Nabi",type:'public'},
+  {date:'2026-08-26',name:"Binara Full Moon Poya",type:'poya'},
+  {date:'2026-09-24',name:"Vap Full Moon Poya",type:'poya'},
+  {date:'2026-10-09',name:"Deepavali",type:'public'},
+  {date:'2026-10-24',name:"Il Full Moon Poya",type:'poya'},
+  {date:'2026-11-22',name:"Unduvap Full Moon Poya",type:'poya'},
+  {date:'2026-12-25',name:"Christmas Day",type:'public'},
+];
+
+// ══════════════════════════════════════════════════════════
+//  CATEGORIES
+// ══════════════════════════════════════════════════════════
+function renderCats(){
+  document.getElementById('ct-body').innerHTML=cats.map((c,i)=>`
+    <tr class="${i%2?'':'ev'}">
+      <td style="text-align:left;font-weight:800">${c.name}</td>
+      ${c.ldr.map(v=>{const p=Math.round(v*100),f=ec(v);
+        return`<td><span style="background:${f}22;color:${f};border-radius:5px;padding:2px 5px;font-weight:800;font-size:11px">${p}%</span></td>`;
+      }).join('')}
+      <td><button class="btn b-red" style="padding:2px 7px;height:22px;font-size:10px" onclick="delCat(${i})">🗑</button></td>
+    </tr>`).join('');
+}
+function openCM(){document.getElementById('cm-ov').classList.add('on');}
+function closeCM(){document.getElementById('cm-ov').classList.remove('on');}
+function saveCM(){
+  const nm=document.getElementById('cm-nm').value.trim().toUpperCase();
+  if(!nm)return alert('Name required');
+  const ldr=[1,2,3,4,5,6,7,8,9,10].map(n=>parseFloat(document.getElementById('cm-d'+n).value||50)/100);
+  cats.push({name:nm,ldr});saveAll();renderCats();closeCM();
+}
+function delCat(i){if(!confirm('Delete "'+cats[i].name+'"?'))return;cats.splice(i,1);saveAll();renderCats();}
+
+// ══════════════════════════════════════════════════════════
+//  EXCEL EXPORTS
+// ══════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+//  EXCEL EXPORT ENGINE — Custom XLSX with full styling
+//  Uses SheetJS for data layout + manual styles XML
+// ══════════════════════════════════════════════════════════
+
+// Build a styled XLSX from scratch using raw XML (works in all browsers)
+function buildStyledXLSX(sheets){
+  // sheets = [{name, rows, colWidths, rowHeights}]
+  // rows = [{height, cells: [{v, t, s, fmt}]}]
+  // s = {bg, fg, bold, italic, sz, ha, va, border}
+  // t = 's'|'n'|'b'  v = value  fmt = numFmt string
+
+  const sharedStrings=[];
+  const ssMap={};
+  const getSI=str=>{const k=String(str);if(ssMap[k]===undefined){ssMap[k]=sharedStrings.length;sharedStrings.push(k);}return ssMap[k];};
+
+  const fills=['<fill><patternFill patternType="none"/></fill>','<fill><patternFill patternType="gray125"/></fill>'];
+  const fillMap={};
+  const getFillId=rgb=>{if(!rgb)return 0;const k=rgb.toUpperCase();if(fillMap[k]===undefined){fillMap[k]=fills.length;fills.push(`<fill><patternFill patternType="solid"><fgColor rgb="FF${k}"/><bgColor indexed="64"/></patternFill></fill>`);}return fillMap[k];};
+
+  const fonts=['<font><sz val="10"/><color rgb="FF000000"/><name val="Calibri"/></font>'];
+  const fontMap={};
+  const getFontId=(sz,rgb,bold,italic)=>{const k=`${sz||10}_${(rgb||'000000').toUpperCase()}_${!!bold}_${!!italic}`;if(fontMap[k]===undefined){fontMap[k]=fonts.length;fonts.push(`<font>${bold?'<b/>':''}${italic?'<i/>':''}<sz val="${sz||10}"/><color rgb="FF${(rgb||'000000').toUpperCase()}"/><name val="Calibri"/></font>`);}return fontMap[k];};
+
+  const borders=['<border><left/><right/><top/><bottom/><diagonal/></border>'];
+  const borderMap={};
+  const getBorderId=(color,style)=>{const k=`${color||'000000'}_${style||'thin'}`;if(borderMap[k]===undefined){borderMap[k]=borders.length;const bc=`<color rgb="FF${(color||'C4D0DE').toUpperCase()}"/>`;const bs=`style="${style||'thin'}"`;borders.push(`<border><left ${bs}>${bc}</left><right ${bs}>${bc}</right><top ${bs}>${bc}</top><bottom ${bs}>${bc}</bottom><diagonal/></border>`);}return borderMap[k];};
+
+  const numFmts=[];const numFmtMap={};let numFmtId=164;
+  const getNumFmtId=fmt=>{if(!fmt)return 0;if(numFmtMap[fmt]===undefined){const id=numFmtId++;numFmtMap[fmt]=id;numFmts.push(`<numFmt numFmtId="${id}" formatCode="${fmt}"/>`);}return numFmtMap[fmt];};
+
+  const xfs=['<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'];
+  const xfMap={};
+  const getXfId=(s)=>{
+    const fillId=getFillId(s.bg);
+    const fontId=getFontId(s.sz,s.fg,s.bold,s.italic);
+    const borderId=getBorderId(s.borderColor,s.borderStyle);
+    const numFmtId2=getNumFmtId(s.fmt||'');
+    const ha=s.ha||'general';const va=s.va||'center';
+    const wrap=s.wrap?1:0;
+    const k=`${fillId}_${fontId}_${borderId}_${numFmtId2}_${ha}_${va}_${wrap}`;
+    if(xfMap[k]===undefined){
+      xfMap[k]=xfs.length;
+      const applyNF=numFmtId2>0?' applyNumberFormat="1"':'';
+      xfs.push(`<xf numFmtId="${numFmtId2}" fontId="${fontId}" fillId="${fillId}" borderId="${borderId}" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"${applyNF}><alignment horizontal="${ha}" vertical="${va}" wrapText="${wrap}"/></xf>`);
+    }
+    return xfMap[k];
+  };
+
+  const sheetsXml=[];
+  const sheetRels=[];
+
+  sheets.forEach((sheet,si)=>{
+    const rid=si+1;
+    sheetRels.push(`<Override PartName="/xl/worksheets/sheet${rid}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`);
+    const lastCol=colLetter(Math.max(0,...sheet.rows.map(r=>r.cells.length-1)));
+    const lastRow=sheet.rows.length;
+    let xml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:${lastCol}${lastRow}"/><sheetViews><sheetView workbookViewId="0" showGridLines="1"><selection activeCell="A1"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="14"/>`;
+    // Col widths
+    if(sheet.colWidths&&sheet.colWidths.length){
+      xml+=`<cols>`;
+      sheet.colWidths.forEach((w,i)=>{xml+=`<col min="${i+1}" max="${i+1}" width="${w||8}" customWidth="1"/>`;});
+      xml+=`</cols>`;
+    }
+    if(sheet.freeze){
+      // Replace sheetViews with freeze pane version
+      xml=xml.replace(/<sheetViews>.*?<\/sheetViews>/s,
+        `<sheetViews><sheetView workbookViewId="0" showGridLines="1"><pane xSplit="${sheet.freeze.x||0}" ySplit="${sheet.freeze.y||0}" topLeftCell="${colLetter(sheet.freeze.x||0)}${(sheet.freeze.y||0)+1}" activePane="bottomRight" state="frozen"/><selection pane="bottomRight" activeCell="A1"/></sheetView></sheetViews>`);
+    }
+    xml+=`<sheetData>`;
+    sheet.rows.forEach((row,ri)=>{
+      const ht=row.height?` ht="${row.height}" customHeight="1"`:'';
+      xml+=`<row r="${ri+1}"${ht}>`;
+      row.cells.forEach((cell,ci)=>{
+        if(cell===null||cell===undefined)return;
+        const col=ci;
+        const addr=`${colLetter(col)}${ri+1}`;
+        const xfId=cell.s?getXfId(cell.s):0;
+        const t=cell.t||'n';
+        if(t==='s'){
+          const si2=getSI(cell.v===undefined||cell.v===null?'':cell.v);
+          xml+=`<c r="${addr}" t="s" s="${xfId}"><v>${si2}</v></c>`;
+        } else if(t==='n'&&(cell.v!==undefined&&cell.v!==null&&cell.v!=='')){
+          xml+=`<c r="${addr}" s="${xfId}"><v>${cell.v}</v></c>`;
+        } else if(t==='e'||cell.v===''||cell.v===undefined||cell.v===null){
+          xml+=`<c r="${addr}" s="${xfId}"/>`;
+        } else {
+          xml+=`<c r="${addr}" s="${xfId}"><v>${cell.v}</v></c>`;
+        }
+      });
+      xml+=`</row>`;
+    });
+    xml+=`</sheetData></worksheet>`;
+    sheetsXml.push(xml);
+  });
+
+  function colLetter(n){let s='';n++;while(n>0){n--;s=String.fromCharCode(65+(n%26))+s;n=Math.floor(n/26);}return s;}
+
+  // Build styles.xml
+  const stylesXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<numFmts count="${numFmts.length}">${numFmts.join('')}</numFmts>
+<fonts count="${fonts.length}">${fonts.join('')}</fonts>
+<fills count="${fills.length}">${fills.join('')}</fills>
+<borders count="${borders.length}">${borders.join('')}</borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+<cellXfs count="${xfs.length}">${xfs.join('')}</cellXfs>
+</styleSheet>`;
+
+  const ssXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${sharedStrings.length}" uniqueCount="${sharedStrings.length}">${sharedStrings.map(s=>`<si><t xml:space="preserve">${escXml(s)}</t></si>`).join('')}</sst>`;
+
+  const wbXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${sheets.map((s,i)=>`<sheet name="${escXml(s.name)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}</sheets></workbook>`;
+
+  const wbRelsXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${sheets.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}<Relationship Id="rId${sheets.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/><Relationship Id="rId${sheets.length+2}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`;
+
+  const contentTypes=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.stylesheet+xml"/><Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/>${sheetRels.join('')}</Types>`;
+
+  const relsXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`;
+
+  function escXml(s){
+    return String(s||'')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+      .replace(/\n/g,'&#10;').replace(/\r/g,'')
+      // eslint-disable-next-line no-control-regex
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'');
+  }
+
+  // Pack into ZIP using JSZip
+  const zip=new JSZip();
+  zip.file('[Content_Types].xml',contentTypes);
+  zip.file('_rels/.rels',relsXml);
+  zip.file('xl/workbook.xml',wbXml);
+  zip.file('xl/_rels/workbook.xml.rels',wbRelsXml);
+  zip.file('xl/styles.xml',stylesXml);
+  zip.file('xl/sharedStrings.xml',ssXml);
+  sheetsXml.forEach((xml,i)=>zip.file(`xl/worksheets/sheet${i+1}.xml`,xml));
+  return zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+
+function downloadBlob(blob,filename){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},100);
+}
+
+// ── STYLE PRESETS ──
+const XS={
+  // s(bg, fg, bold, sz, ha, fmt, borderColor)
+  s:(bg,fg,bold,sz,ha,fmt,bc)=>({bg,fg,bold,sz:sz||10,ha:ha||'right',va:'center',fmt:fmt||'',borderColor:bc||'C4D0DE',borderStyle:'thin'}),
+  hdrDark: bg=>({bg,fg:'FFFFFF',bold:true,sz:10,ha:'center',va:'center',borderColor:'1A2D42',borderStyle:'thin'}),
+  hdrBlue: ()=>({bg:'1565C0',fg:'FFFFFF',bold:true,sz:10,ha:'center',va:'center',borderColor:'1976D2',borderStyle:'thin'}),
+  lhdr:    ()=>({bg:'1565C0',fg:'FFFFFF',bold:true,sz:11,ha:'left',va:'center',borderColor:'0D47A1',borderStyle:'medium'}),
+  label:   ()=>({bg:'1565C0',fg:'FFFFFF',bold:true,sz:10,ha:'left',va:'center',borderColor:'1976D2',borderStyle:'thin'}),
+  styleLbl:()=>({bg:'E3F2FD',fg:'0D47A1',bold:true,sz:9,ha:'left',va:'center',borderColor:'BBDEFB',borderStyle:'thin'}),
+  we:      ()=>({bg:'ECEFF1',fg:'90A4AE',bold:false,sz:9,ha:'center',va:'center',borderColor:'B0BEC5',borderStyle:'thin'}),
+  hol:     ()=>({bg:'FFF8E1',fg:'E65100',bold:true,sz:9,ha:'center',va:'center',borderColor:'F9A825',borderStyle:'thin'}),
+  sum:     ()=>({bg:'0D47A1',fg:'FFFFFF',bold:true,sz:11,ha:'right',va:'center',borderColor:'0A3880',borderStyle:'thin'}),
+  ft:      ()=>({bg:'0D47A1',fg:'E3F2FD',bold:true,sz:11,ha:'right',va:'center',borderColor:'0A3880',borderStyle:'thin'}),
+  ftLabel: ()=>({bg:'1565C0',fg:'FFFFFF',bold:true,sz:11,ha:'left',va:'center',borderColor:'0D47A1',borderStyle:'thin'}),
+  sep:     ()=>({bg:'B0BEC5',fg:'B0BEC5',bold:false,sz:6,ha:'center',va:'center',borderColor:'B0BEC5',borderStyle:'thin'}),
+};
+
+// Row-type color presets
+const ROW_STYLES={
+  STYLE:      {bg:'E3F2FD',fg:'004FA3',bold:true,sz:10},
+  'FOB ($)':  {bg:'E8F5E9',fg:'1B5E20',bold:false,sz:10},
+  'CM ($)':   {bg:'FFF8E1',fg:'E65100',bold:false,sz:10},
+  SMV:        {bg:'F3E5F5',fg:'4A0072',bold:false,sz:10},
+  'PLAN TARGET':{bg:'FFFFFF',fg:'1565C0',bold:true,sz:11},
+  'T. PLAN CUM':{bg:'EDE7F6',fg:'4527A0',bold:false,sz:10,italic:true},
+  'PLAN HRS': {bg:'E0F7FA',fg:'006064',bold:false,sz:10},
+  'PLAN HRS CUM':{bg:'E0F2F1',fg:'00695C',bold:false,sz:10,italic:true},
+  'FOB VALUE':{bg:'F1F8E9',fg:'33691E',bold:false,sz:10},
+  'CM VALUE': {bg:'FBE9E7',fg:'BF360C',bold:false,sz:10},
+  EFFI:       {bg:'E8EAF6',fg:'1A237E',bold:true,sz:10},
+};
+
+function exportDayPlanXLSX(){
+  if(!styles.length){alert('Upload Master Plan first.');return;}
+  const mf=document.getElementById('dp-mo').value||'';
+  if(!mf){alert('Select a month first.');return;}
+  const [yr,mo]=mf.split('-').map(Number);
+  const selLines=msState.dpline;
+  const DEF_MO=parseInt(document.getElementById('dp-MO').value)||25;
+  const DEF_WH=parseInt(document.getElementById('dp-WH').value)||10;
+  const allDays=allDaysOf(yr,mo);
+
+  let data=styles.filter(s=>{
+    if(selLines&&selLines.length&&!selLines.includes(String(s.line)))return false;
+    if(!s.psdDate&&!s.pfdDate)return false;
+    const mS=new Date(yr,mo-1,1),mE=new Date(yr,mo,0,23,59,59);
+    return(s.psdDate||mS)<=mE&&(s.pfdDate||mE)>=mS;
+  });
+  const lineNums=[...new Set(data.map(s=>s.line).filter(Boolean))].sort((a,b)=>a-b);
+  const mlbl=`FACTORY — MONTH OF ${MN[mo-1].toUpperCase()} ${yr} PRODUCTION PLAN`;
+
+  const GC_HEXCOLS=['1565C0','2E7D32','6A1B9A','AD1457','E65100','00695C','283593','4A7C00','4527A0','C62828','0277BD','37474F','BF6000','5D4037','006064','558B2F'];
+
+  const rows=[];
+  const mkCell=(v,s,fmt)=>({v,t:typeof v==='number'?'n':'s',s:{...s,fmt:fmt||s.fmt||''},});
+  const emptyCell=s=>({v:'',t:'e',s});
+  const numCell=(v,s,fmt)=>v!==null&&v!==undefined&&v!==''?{v:Math.round(v*100)/100,t:'n',s:{...s,fmt:fmt||'#,##0'}}:emptyCell(s);
+
+  // ROW 0: Title header
+  const hdrRow=[
+    mkCell(mlbl,{...XS.hdrBlue(),ha:'left',sz:11}),
+    mkCell('DATE',XS.hdrBlue()),
+    ...allDays.map(d=>{
+      if(isHoliday(d)){const h=getHoliday(d);return mkCell(`${d.getDate()} ${h.name.slice(0,12)}`,{...XS.hol(),bg:'F9A825',fg:'3E2000',bold:true,sz:9,ha:'center'});}
+      if(isWE(d))return mkCell(d.getDate(),{...XS.we(),bg:'B0BEC5',fg:'37474F',bold:true});
+      return mkCell(d.getDate(),XS.hdrDark('1976D2'));
+    }),
+    mkCell('PLAN QTY',XS.hdrDark('0D47A1')),mkCell('PLAN SAH',XS.hdrDark('0D47A1')),
+    mkCell('CM VALUE',XS.hdrDark('0D47A1')),mkCell('FOB VALUE',XS.hdrDark('0D47A1')),
+    mkCell('CUM QTY',XS.hdrDark('0D47A1')),mkCell('CUM SAH',XS.hdrDark('0D47A1')),
+  ];
+  rows.push({height:18,cells:hdrRow});
+
+  // ROW 1: Day names
+  const dayRow=[
+    emptyCell(XS.hdrDark('0D1B2E')),mkCell('DAY',XS.hdrDark('1565C0')),
+    ...allDays.map(d=>{
+      if(isHoliday(d))return mkCell(DN[d.getDay()],{...XS.hol(),sz:9});
+      if(isWE(d))return mkCell(DN[d.getDay()],XS.we());
+      return mkCell(DN[d.getDay()],XS.hdrDark('1976D2'));
+    }),
+    ...Array(6).fill(null).map(()=>emptyCell(XS.hdrDark('0D47A1'))),
+  ];
+  rows.push({height:14,cells:dayRow});
+
+  const gPlan=allDays.map(()=>0),gSAH=allDays.map(()=>0),gCM=allDays.map(()=>0),gFOB=allDays.map(()=>0);
+  const lineSums=[];
+
+  lineNums.forEach(ln=>{
+    const ls=data.filter(s=>s.line===ln).sort((a,b)=>(a.psdDate||0)-(b.psdDate||0));
+    const lTotQty=ls.reduce((a,s)=>a+s.qty,0);
+    const styleColorMap={};ls.forEach((s,i)=>{styleColorMap[s.style]=GC_HEXCOLS[i%GC_HEXCOLS.length];});
+
+    // LINE HEADER
+    const lhCells=[
+      mkCell(`LINE ${ln}  |  ${ls.length} style(s)  |  Alloc Qty: ${lTotQty.toLocaleString()}`,{...XS.lhdr(),ha:'left'}),
+      emptyCell(XS.lhdr()),
+      ...allDays.map(()=>emptyCell(XS.lhdr())),
+      ...Array(6).fill(null).map(()=>emptyCell(XS.lhdr())),
+    ];
+    rows.push({height:18,cells:lhCells});
+
+    // Pre-compute per-day data
+    const styleLdrIdx={};ls.forEach(s=>{styleLdrIdx[s.id]=0;});
+    const D={styleName:[],fob:[],cm:[],smv:[],plan:[],cumP:[],hrs:[],cumH:[],fobV:[],cmV:[],eff:[]};
+    let cumPlan=0,cumSAH=0;
+
+    allDays.forEach((dt,di)=>{
+      if(isNonWorking(dt)){Object.values(D).forEach(a=>a.push(null));return;}
+      const s=ls.find(x=>inRange(dt,x.psdDate,x.pfdDate));
+      if(!s){
+        D.styleName.push(null);D.fob.push(null);D.cm.push(null);D.smv.push(null);
+        D.plan.push(null);D.cumP.push(cumPlan||null);
+        D.hrs.push(null);D.cumH.push(cumSAH||null);
+        D.fobV.push(null);D.cmV.push(null);D.eff.push(null);
+        return;
+      }
+      const ldr=getLdr(s.cat);const MO=s.mo||DEF_MO,WH=s.wh||DEF_WH;
+      const idx=styleLdrIdx[s.id];
+      const eff=idx<ldr.length?ldr[idx]:ldr[ldr.length-1];
+      const out=dOut(MO,WH,s.smv||1,eff);const sah=dSAH(out,s.smv||1);
+      const fobv=out*(s.fob||0),cmv=out*(s.cm||0);
+      cumPlan+=out;cumSAH+=sah;styleLdrIdx[s.id]++;
+      gPlan[di]+=out;gSAH[di]+=sah;gCM[di]+=cmv;gFOB[di]+=fobv;
+      D.styleName.push(s.style);D.fob.push(s.fob);D.cm.push(s.cm);D.smv.push(s.smv);
+      D.plan.push(out);D.cumP.push(cumPlan);D.hrs.push(sah);D.cumH.push(cumSAH);
+      D.fobV.push(fobv);D.cmV.push(cmv);D.eff.push(eff);
+    });
+    const mPlan=D.plan.reduce((a,v)=>a+(v||0),0);
+    const mSAH=D.hrs.reduce((a,v)=>a+(v||0),0);
+    const mFOB=D.fobV.reduce((a,v)=>a+(v||0),0);
+    const mCM=D.cmV.reduce((a,v)=>a+(v||0),0);
+    lineSums.push({line:ln,chg:ls.length,plan:mPlan,sah:mSAH,fob:mFOB,cm:mCM,cumPlan,cumSAH});
+
+    const rowDefs=[
+      {key:'styleName',label:'STYLE',       fmt:'',    sumV:ls.map(s=>s.style).join(' → ')},
+      {key:'fob',      label:'FOB ($)',      fmt:'"$"0.00', sumV:null},
+      {key:'cm',       label:'CM ($)',       fmt:'"$"0.00', sumV:null},
+      {key:'smv',      label:'SMV',          fmt:'0.00',    sumV:null},
+      {key:'plan',     label:'PLAN TARGET',  fmt:'#,##0',   sumV:mPlan,  smIdx:0},
+      {key:'cumP',     label:'T. PLAN CUM',  fmt:'#,##0',   sumV:cumPlan,smIdx:4},
+      {key:'hrs',      label:'PLAN HRS',     fmt:'#,##0',   sumV:mSAH,   smIdx:1},
+      {key:'cumH',     label:'PLAN HRS CUM', fmt:'#,##0',   sumV:cumSAH, smIdx:5},
+      {key:'fobV',     label:'FOB VALUE',    fmt:'"$"#,##0',sumV:mFOB,   smIdx:3},
+      {key:'cmV',      label:'CM VALUE',     fmt:'"$"#,##0',sumV:mCM,    smIdx:2},
+      {key:'eff',      label:'EFFI',         fmt:'0%',      sumV:null},
+    ];
+
+    rowDefs.forEach(rd=>{
+      const rs=ROW_STYLES[rd.label]||ROW_STYLES.STYLE;
+      const baseS={...rs,ha:'right',va:'center',borderColor:'CFD8DC',borderStyle:'thin'};
+
+      const smCells=Array(6).fill(null).map((_,i)=>{
+        if(rd.smIdx===i&&rd.sumV!==null){
+          const v=typeof rd.sumV==='string'?rd.sumV:Math.round(rd.sumV);
+          return typeof rd.sumV==='string'
+            ?mkCell(v,{...XS.sum(),ha:'center'})
+            :numCell(v,XS.sum(),rd.fmt);
+        }
+        return emptyCell(XS.sum());
+      });
+
+      const dataCells=allDays.map((dt,di)=>{
+        const v=D[rd.key][di];
+        if(isHoliday(dt))return mkCell('🎌',{...XS.hol()});
+        if(isWE(dt))return emptyCell(XS.we());
+        if(v===null||v===undefined)return emptyCell({...baseS,bg:'F8FAFC'});
+        if(rd.key==='styleName'){
+          const bg=styleColorMap[v]||'1565C0';
+          return mkCell(v,{bg,fg:'FFFFFF',bold:true,sz:9,ha:'center',va:'center',borderColor:'00000030',borderStyle:'thin'});
+        }
+        if(rd.key==='eff'){
+          const pct=v;
+          const fg=pct>=0.6?'00884A':pct>=0.45?'0066CC':pct>=0.35?'E65100':'B71C1C';
+          return numCell(v,{...baseS,fg,bold:true},rd.fmt);
+        }
+        if(rd.key==='cumP'||rd.key==='cumH')
+          return numCell(v,{...baseS,italic:true},rd.fmt);
+        return typeof v==='number'?numCell(v,baseS,rd.fmt):mkCell(v,baseS);
+      });
+
+      const lblBorder=rd.label==='PLAN TARGET'
+        ?{...XS.label(),borderStyle:'medium'}:XS.label();
+
+      rows.push({height:rd.label==='PLAN TARGET'?15:13,cells:[
+        mkCell(ln,{...XS.label(),ha:'center'}),
+        mkCell(rd.label,lblBorder),
+        ...dataCells,...smCells
+      ]});
+    });
+
+    // Separator
+    const sepCells=Array(2+allDays.length+6).fill(null).map(()=>emptyCell(XS.sep()));
+    rows.push({height:4,cells:sepCells});
+  });
+
+  // FACTORY TOTAL ROWS
+  const ftDefs=[
+    {lbl:'TTL PLAN TARGET',arr:gPlan,fmt:'#,##0',  pfx:''},
+    {lbl:'TTL SAH / HRS',  arr:gSAH, fmt:'#,##0',  pfx:''},
+    {lbl:'TTL CM VALUE',   arr:gCM,  fmt:'"$"#,##0',pfx:'$'},
+    {lbl:'TTL FOB VALUE',  arr:gFOB, fmt:'"$"#,##0',pfx:'$'},
+  ];
+  ftDefs.forEach(fd=>{
+    const cells=[
+      mkCell(' ',XS.ftLabel()),mkCell(fd.lbl,XS.ftLabel()),
+      ...allDays.map((dt,di)=>{
+        if(isHoliday(dt))return mkCell('🎌',{...XS.hol(),bg:'FFF8E1'});
+        if(isWE(dt))return emptyCell({...XS.we(),bg:'DDEEFF'});
+        const v=fd.arr[di];
+        return v?numCell(Math.round(v),XS.ft(),fd.fmt):emptyCell(XS.ft());
+      }),
+      ...Array(6).fill(null).map(()=>emptyCell(XS.sum())),
+    ];
+    rows.push({height:16,cells});
+  });
+  // Cum total
+  let cr=0;
+  rows.push({height:15,cells:[
+    mkCell(' ',XS.ftLabel()),mkCell('TTL CUM PLAN',XS.ftLabel()),
+    ...allDays.map((dt,di)=>{
+      if(isHoliday(dt))return mkCell('🎌',{...XS.hol()});
+      if(isWE(dt))return emptyCell({...XS.we(),bg:'DDEEFF'});
+      cr+=gPlan[di];return numCell(Math.round(cr),{...XS.ft(),fg:'BBDEFB',italic:true},'#,##0');
+    }),
+    ...Array(6).fill(null).map(()=>emptyCell(XS.sum())),
+  ]});
+
+  // Summary table header
+  rows.push({height:5,cells:[]});
+  const smHdr=['Line','Styles','Plan Qty','Plan SAH','Total CM','Total FOB','Cum Qty','Cum SAH'];
+  rows.push({height:16,cells:smHdr.map(h=>mkCell(h,XS.hdrDark('0D47A1')))});
+  lineSums.forEach((s,i)=>{
+    const bg=i%2?'FFFFFF':'F4F8FC';
+    rows.push({height:14,cells:[
+      mkCell(`L${s.line}`,{bg,fg:'0D47A1',bold:true,sz:11,ha:'center',va:'center',borderColor:'CFD8DC',borderStyle:'thin'}),
+      numCell(s.chg,{bg,fg:'000000',bold:false,sz:10,ha:'center',va:'center',borderColor:'CFD8DC',borderStyle:'thin'},'#,##0'),
+      numCell(Math.round(s.plan),{bg,fg:'1565C0',bold:true,sz:10,ha:'right',va:'center',borderColor:'CFD8DC',borderStyle:'thin'},'#,##0'),
+      numCell(Math.round(s.sah), {bg,fg:'000000',bold:false,sz:10,ha:'right',va:'center',borderColor:'CFD8DC',borderStyle:'thin'},'#,##0'),
+      numCell(Math.round(s.cm),  {bg,fg:'7B1FA2',bold:true,sz:10,ha:'right',va:'center',borderColor:'CFD8DC',borderStyle:'thin'},'"$"#,##0'),
+      numCell(Math.round(s.fob), {bg,fg:'1B5E20',bold:true,sz:10,ha:'right',va:'center',borderColor:'CFD8DC',borderStyle:'thin'},'"$"#,##0'),
+      numCell(Math.round(s.cumPlan),{bg,fg:'3949AB',bold:true,sz:10,ha:'right',va:'center',borderColor:'CFD8DC',borderStyle:'thin'},'#,##0'),
+      numCell(Math.round(s.cumSAH), {bg,fg:'00695C',bold:true,sz:10,ha:'right',va:'center',borderColor:'CFD8DC',borderStyle:'thin'},'#,##0'),
+    ]});
+  });
+  const tot=lineSums.reduce((a,s)=>({plan:a.plan+s.plan,sah:a.sah+s.sah,cm:a.cm+s.cm,fob:a.fob+s.fob,cumPlan:a.cumPlan+s.cumPlan,cumSAH:a.cumSAH+s.cumSAH}),{plan:0,sah:0,cm:0,fob:0,cumPlan:0,cumSAH:0});
+  rows.push({height:16,cells:[
+    mkCell('Total',XS.hdrDark('0D47A1')),
+    numCell(lineSums.length,XS.hdrDark('0D47A1'),'#,##0'),
+    numCell(Math.round(tot.plan), XS.hdrDark('0D47A1'),'#,##0'),
+    numCell(Math.round(tot.sah),  XS.hdrDark('0D47A1'),'#,##0'),
+    numCell(Math.round(tot.cm),   XS.hdrDark('0D47A1'),'"$"#,##0'),
+    numCell(Math.round(tot.fob),  XS.hdrDark('0D47A1'),'"$"#,##0'),
+    numCell(Math.round(tot.cumPlan),XS.hdrDark('0D47A1'),'#,##0'),
+    numCell(Math.round(tot.cumSAH), XS.hdrDark('0D47A1'),'#,##0'),
+  ]});
+
+  const colWidths=[8,14,...allDays.map(d=>isNonWorking(d)?4:8),10,10,10,10,10,10];
+
+  buildStyledXLSX([{name:'DAY BY DAY plan',rows,colWidths,freeze:{x:2,y:2}}])
+    .then(blob=>downloadBlob(blob,`DayPlan_${MN[mo-1]}${yr}.xlsx`))
+    .catch(err=>alert('Export error: '+err.message));
+}
+
+function exportGanttXLSX(){
+  if(!styles.length){alert('Upload Master Plan first.');return;}
+  const mf=document.getElementById('gc-mo').value||'';
+  if(!mf){alert('Select a month first.');return;}
+  const [yr,mo]=mf.split('-').map(Number);
+  const selLines=msState.gcline;
+  const allDays=allDaysOf(yr,mo);
+  let lineNums=[...new Set(styles.map(s=>s.line).filter(Boolean))].sort((a,b)=>a-b);
+  if(selLines&&selLines.length)lineNums=lineNums.filter(l=>selLines.includes(String(l)));
+
+  const GC_HEXCOLS=['1565C0','2E7D32','6A1B9A','AD1457','E65100','00695C','283593','4A7C00','4527A0','C62828','0277BD','37474F','BF6000','5D4037','006064','558B2F'];
+  const mkCell=(v,s)=>({v,t:typeof v==='number'?'n':'s',s});
+  const emptyCell=s=>({v:'',t:'e',s});
+  const numCell=(v,s,fmt)=>({v,t:'n',s:{...s,fmt:fmt||''}});
+
+  const scMap={};
+  lineNums.forEach(ln=>{
+    let ci=0;const seen={};
+    styles.filter(s=>s.line===ln).sort((a,b)=>(a.psdDate||0)-(b.psdDate||0))
+          .forEach(s=>{if(s.style&&!seen[s.style])seen[s.style]=ci++;});
+    scMap[ln]=seen;
+  });
+
+  const rows=[];
+
+  // ROW 0: Month + dates
+  rows.push({height:18,cells:[
+    mkCell(`${MN[mo-1]} ${yr}`,{bg:'07101E',fg:'4CCFFF',bold:true,sz:13,ha:'center',va:'center',borderColor:'1A2D42',borderStyle:'thin'}),
+    ...allDays.map(d=>{
+      if(isHoliday(d)){const h=getHoliday(d);return mkCell(`${d.getDate()} 🎌`,{bg:'F9A825',fg:'3E2000',bold:true,sz:10,ha:'center',va:'center',borderColor:'E8C84A',borderStyle:'thin'});}
+      if(isWE(d))return mkCell(d.getDate(),{bg:'B0BEC5',fg:'455A64',bold:false,sz:10,ha:'center',va:'center',borderColor:'90A4AE',borderStyle:'thin'});
+      return mkCell(d.getDate(),{bg:'0D1B2E',fg:'C8DCF0',bold:true,sz:11,ha:'center',va:'center',borderColor:'1A2D42',borderStyle:'thin'});
+    }),
+  ]});
+  // ROW 1: Month name
+  rows.push({height:13,cells:[
+    emptyCell({bg:'07101E',fg:'4CCFFF',bold:false,sz:9,ha:'center',va:'center',borderColor:'1A2D42',borderStyle:'thin'}),
+    ...allDays.map(d=>{
+      if(isHoliday(d))return mkCell(getHoliday(d).name.slice(0,14),{bg:'FFF8E1',fg:'B8860B',bold:false,sz:8,ha:'center',va:'center',borderColor:'F9A825',borderStyle:'thin'});
+      if(isWE(d))return mkCell(MN[d.getMonth()],{bg:'CFD8DC',fg:'546E7A',bold:false,sz:8,ha:'center',va:'center',borderColor:'90A4AE',borderStyle:'thin'});
+      return mkCell(MN[d.getMonth()],{bg:'1E3A5F',fg:'C8DCF0',bold:false,sz:9,ha:'center',va:'center',borderColor:'1A2D42',borderStyle:'thin'});
+    }),
+  ]});
+  // ROW 2: Day names
+  rows.push({height:13,cells:[
+    mkCell('LINE',{bg:'07101E',fg:'4CCFFF',bold:true,sz:10,ha:'center',va:'center',borderColor:'1A2D42',borderStyle:'thin'}),
+    ...allDays.map(d=>{
+      if(isHoliday(d))return mkCell(DN[d.getDay()],{bg:'F9A825',fg:'3E2000',bold:true,sz:9,ha:'center',va:'center',borderColor:'E8C84A',borderStyle:'thin'});
+      if(isWE(d))return mkCell(DN[d.getDay()],{bg:'B0BEC5',fg:'455A64',bold:false,sz:8,ha:'center',va:'center',borderColor:'90A4AE',borderStyle:'thin'});
+      return mkCell(DN[d.getDay()],{bg:'162840',fg:'8AAAC8',bold:false,sz:9,ha:'center',va:'center',borderColor:'0D1F33',borderStyle:'thin'});
+    }),
+  ]});
+
+  // QCO per day
+  const qco=allDays.map(dt=>{
+    if(isNonWorking(dt))return 0;
+    let c=0;lineNums.forEach(ln=>styles.filter(s=>s.line===ln&&s.psdDate).forEach(s=>{if(sameDay(dt,s.psdDate))c++;}));
+    return c;
+  });
+
+  // Line rows
+  lineNums.forEach(ln=>{
+    let prevSN='';
+    const cells=[
+      mkCell(`L${ln}`,{bg:'1E3A5F',fg:'FFFFFF',bold:true,sz:12,ha:'center',va:'center',borderColor:'142B48',borderStyle:'thin'}),
+      ...allDays.map(dt=>{
+        if(isHoliday(dt)){const h=getHoliday(dt);prevSN='';
+          return mkCell(`🎌 ${h.name.slice(0,12)}`,{bg:'FFF3CC',fg:'7A5C00',bold:false,sz:8,ha:'center',va:'center',borderColor:'E8C84A',borderStyle:'thin'});}
+        if(isWE(dt)){prevSN='';return emptyCell({bg:'DDE5EF',borderColor:'B0BEC5',borderStyle:'thin',ha:'center',va:'center',sz:9});}
+        const sn=getStyleOnDay(ln,dt);
+        if(!sn){prevSN='';return emptyCell({bg:'F0F4F8',borderColor:'C8D4E4',borderStyle:'thin',ha:'center',va:'center',sz:9});}
+        const ci=scMap[ln]?.[sn]||0;
+        const rgb=GC_HEXCOLS[ci%GC_HEXCOLS.length];
+        const isFirst=sn!==prevSN;prevSN=sn;
+        return mkCell(isFirst?sn:'',{bg:rgb,fg:'FFFFFF',bold:isFirst,sz:isFirst?9:8,ha:'left',va:'center',borderColor:'00000025',borderStyle:'thin'});
+      }),
+    ];
+    rows.push({height:24,cells});
+  });
+
+  // QCO row
+  const wdCount=allDays.filter(d=>!isNonWorking(d)).length;
+  rows.push({height:18,cells:[
+    mkCell(`QCO - ${wdCount}`,{bg:'0A1C30',fg:'6090B0',bold:true,sz:10,ha:'center',va:'center',borderColor:'1A3050',borderStyle:'thin'}),
+    ...allDays.map((dt,di)=>{
+      if(isNonWorking(dt))return emptyCell({bg:'08182A',borderColor:'1A3050',borderStyle:'thin',ha:'center',va:'center',sz:9});
+      const n=qco[di];
+      const fg=n>=4?'FFD700':n>=2?'5BC0FF':n>=1?'88AACC':'334455';
+      return n?numCell(n,{bg:'0D2238',fg,bold:true,sz:11,ha:'center',va:'center',borderColor:'1A3050',borderStyle:'thin'},'#,##0')
+              :emptyCell({bg:'0D2238',borderColor:'1A3050',borderStyle:'thin',ha:'center',va:'center',sz:9});
+    }),
+  ]});
+
+  const colWidths=[14,...allDays.map(d=>isNonWorking(d)?5:12)];
+  buildStyledXLSX([{name:'GANTT CHART',rows,colWidths,freeze:{x:1,y:3}}])
+    .then(blob=>downloadBlob(blob,`GanttChart_${MN[mo-1]}${yr}.xlsx`))
+    .catch(err=>alert('Export error: '+err.message));
+}
+
+// ══════════════════════════════════════════════════════════
+//  TAB SWITCH
+// ══════════════════════════════════════════════════════════
+function showTab(name,btn){
+  document.querySelectorAll('.pnl').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.getElementById('p-'+name).classList.add('on');
+  btn.classList.add('on');
+  if(name==='gantt')renderGC();
+  if(name==='dayplan')renderDP();
+  if(name==='master')renderMP();
+  if(name==='category')renderCats();
+  if(name==='holidays')renderHolidays();
+}
+document.querySelectorAll('.ov').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('on');}));
+
+// ══════════════════════════════════════════════════════════
+//  INIT — load from localStorage on startup
+// ══════════════════════════════════════════════════════════
+(function init(){
+  // Holiday year select default
+  const yr=document.getElementById('hl-yr');
+  const curYr=String(new Date().getFullYear());
+  yr.innerHTML=`<option value="${curYr}">${curYr}</option><option value="${+curYr+1}">${+curYr+1}</option>`;
+
+  const loaded=loadAll();
+  if(loaded&&styles.length){afterDataLoad();}
+  else{renderCats();renderHolidays();}
+})();
+</script>
+</body>
+</html>
